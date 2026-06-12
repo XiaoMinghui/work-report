@@ -13,7 +13,7 @@ if (-not $remote) {
     Write-Host "已添加 GitHub 远程: $REMOTE_URL" -ForegroundColor Green
 }
 
-git add index.html README.md DEPLOY.md deploy-cloudflare.ps1 deploy-gitee.ps1
+git add index.html favicon.png app.ico assets README.md DEPLOY.md deploy-cloudflare.ps1 deploy-gitee.ps1 .gitignore
 
 $status = git status --porcelain
 if ($status) {

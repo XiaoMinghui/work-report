@@ -2,395 +2,932 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <meta name="description" content="每日工作汇报生成器，填写后一键复制发到群里">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <meta name="apple-mobile-web-app-title" content="工作汇报">
-  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-  <meta http-equiv="Pragma" content="no-cache">
-  <meta http-equiv="Expires" content="0">
-  <title>工作汇报生成器</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>又要写汇报了</title>
+  <link rel="icon" type="image/png" href="favicon.png" />
+  <link rel="apple-touch-icon" href="favicon.png" />
+  <link rel="stylesheet" href="assets/fonts/fonts.css" />
+  <script src="assets/js/react.production.min.js"></script>
+  <script src="assets/js/react-dom.production.min.js"></script>
+  <script src="assets/js/babel.min.js"></script>
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --primary: #19c8b9; --primary-hover: #3dd4c6; --primary-active: #11a89b; --primary-bg: #e6f9f6;
+  --text: #794f27; --text-body: #725d42; --text-secondary: #9f927d; --text-muted: #8a7b66; --text-disabled: #c4b89e;
+  --bg: #7DC395; --bg-content: rgb(247, 243, 223); --bg-disabled: #f0ece2;
+  --border: #c4b89e; --border-hover: #a89878; --border-strong: #9f927d;
+  --success: #6fba2c; --success-active: #5a9e1e; --warning: #f5c31c; --warning-active: #dba90e;
+  --error: #e05a5a; --error-active: #c94444;
+  --focus-yellow: #ffcc00; --focus-yellow-d: #e0b800; --focus-yellow-radio: #f5c31c;
+  --shadow-btn: #bdaea0; --shadow-input: #d4c9b4; --shadow-switch: #5a9e1e;
+  --r-sm: 12px; --r-base: 18px; --r-lg: 24px; --r-pill: 50px;
+  --ease: cubic-bezier(0.4, 0, 0.2, 1); --d-fast: 0.15s; --d-base: 0.25s; --d-slow: 0.35s;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Nunito,'Noto Sans SC',-apple-system,'PingFang SC',sans-serif;font-weight:500;letter-spacing:0.01em;background-color:#7DC395;background-image:url('assets/img/home_bg.webp');background-repeat:repeat;background-size:auto;background-position:0 0;animation:bgScroll 80s linear infinite;color:var(--text-body);line-height:1.55;min-height:100vh;overflow:auto;padding:18px 56px 36px;box-sizing:border-box}
+html,#root{min-height:100%}
+.page{width:100%;max-width:1180px;min-height:100%;height:auto;margin:0 auto;padding:4px 8px 8px;display:flex;flex-direction:column;gap:18px;overflow:visible}
+.page-top{text-align:center;flex-shrink:0;padding:6px 0 22px;margin-bottom:4px}
+.page-top .animal-title,.page-top .animal-ribbon,.page-top .animal-ribbon-text{font-family:Nunito,'Noto Sans SC',sans-serif;font-weight:900;letter-spacing:0.03em}
+.page-top .animal-ribbon-text{text-shadow:0 0.05em 0 rgba(0,0,0,0.14),0 0.04em 0.1em rgba(0,0,0,0.08)}
+.page-main{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,0.8fr);gap:20px;align-items:start}
+.input-column{display:flex;flex-direction:column;gap:12px;overflow:visible;padding-right:4px}
+.output-column{display:flex;flex-direction:column;gap:12px}
+.basic-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.section-block{display:flex;flex-direction:column;gap:8px}
+.section-block .animal-card{padding:14px 16px;border-radius:16px}
+.section-block .animal-card:hover{transform:none}
+.add-row{display:flex;gap:8px;align-items:center}
+.add-row--top{align-items:flex-start}
+.add-row .animal-input-wrap{flex:1}
+.add-row .animal-btn{flex-shrink:0}
+.item-list{display:flex;flex-direction:column;gap:6px;margin-top:4px}
+.item-list.scrollable-list.s2-grid{max-height:clamp(106px,24vh,224px);overflow-y:auto;overscroll-behavior:contain;padding-right:6px;margin-right:-2px}
+.s4-list.scrollable-list--active{max-height:calc(46px * 4 + 6px * 3 + 8px * 3);overflow-y:auto;overscroll-behavior:contain;padding-right:6px;margin-right:-2px}
+.scrollable-list .list-row:last-child,.scrollable-list .item-list-row:last-child,.s4-list .list-row:last-child{margin-bottom:0}
+.scrollable-list::-webkit-scrollbar,.s4-list.scrollable-list--active::-webkit-scrollbar{width:8px}
+.scrollable-list::-webkit-scrollbar-track,.s4-list.scrollable-list--active::-webkit-scrollbar-track{background:rgba(196,184,158,0.22);border-radius:4px}
+.scrollable-list::-webkit-scrollbar-thumb,.s4-list.scrollable-list--active::-webkit-scrollbar-thumb{background:rgba(121,79,39,0.35);border-radius:4px}
+.scrollable-list::-webkit-scrollbar-thumb:hover,.s4-list.scrollable-list--active::-webkit-scrollbar-thumb:hover{background:rgba(121,79,39,0.5)}
+.section-card-scroll{display:flex;flex-direction:column;min-height:0}
+.section-card-scroll .section-label,.section-card-scroll .list-actions,.section-card-scroll .add-row{flex-shrink:0}
+.s2-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px 10px}
+.s2-grid-empty{grid-column:1/-1}
+.s2-grid-slot{display:flex;align-items:center;gap:6px;min-width:0}
+.s2-grid-slot .animal-input-wrap{flex:1;min-width:0}
+.s2-grid-slot .animal-btn--small{flex-shrink:0;padding:0 4px;min-width:34px}
+.item-list + .add-row{margin-top:8px}
+.item-list-row{display:flex;align-items:center;gap:8px;padding:8px 10px;background:rgba(248,248,240,0.85);border-radius:12px;border:1px solid rgba(196,184,158,0.45)}
+.item-list-text{flex:1;font-size:15.6px;color:var(--text-body);line-height:1.45;word-break:break-all}
+.item-list-empty{font-size:14.4px;color:var(--text-secondary);padding:4px 2px}
+.list-row{display:flex;gap:8px;align-items:center;margin-bottom:8px}
+.list-row .animal-input-wrap{flex:1;min-width:0}
+.list-row .animal-btn--small{flex-shrink:0;padding:0 4px;min-width:34px}
+.animal-item-icon{display:block;object-fit:contain;flex-shrink:0;image-rendering:auto}
+.list-actions{margin-top:6px}
+.preview-box{display:flex;flex-direction:column;gap:12px;padding:0}
+.preview-inner{display:flex;flex-direction:column;gap:8px}
+.preview-time{width:100%}
+.page .animal-time{width:100%;box-sizing:border-box;justify-content:flex-start;padding:12px 28px;gap:24px}
+.page .animal-time-date{text-align:left;flex-shrink:0}
+.page .animal-time-clock{flex:0 0 auto}
+.page .animal-time-clock{font-size:40px}
+.page .animal-time-day{font-size:19px}
+.page .animal-time-weekday{font-size:12px}
+.preview-area{width:100%;min-height:min(420px,50vh);background:rgb(250,248,242);border:2px solid var(--border);border-radius:14px;padding:14px 16px;font-family:inherit;font-size:15.6px;font-weight:500;line-height:1.55;color:var(--text-body);white-space:pre-wrap;word-break:break-all;overflow-y:auto;resize:none;outline:none}
+.preview-area::placeholder{color:var(--text-secondary);font-weight:400;font-size:15.6px}
+.preview-area:focus{outline:none;border-color:var(--border-hover)}
+.output-actions{flex-shrink:0;text-align:center}
+.output-actions .animal-tooltip-wrap{display:block;width:100%}
+.output-actions .animal-btn{width:100%}
+.section-label{font-size:15.6px;font-weight:600;color:var(--text);letter-spacing:0.02em}
+.copy-tip{display:inline-block;text-align:center;font-size:14.4px;font-weight:700;color:#794f27;background:#fff9e3;border:2px solid #794f27;border-radius:12px;padding:8px 16px;margin:10px auto 0;box-shadow:0 3px 10px rgba(61,52,40,0.18);opacity:0;transform:translateY(4px);transition:opacity var(--d-base) var(--ease),transform var(--d-base) var(--ease)}
+.copy-tip.show{opacity:1;transform:translateY(0)}
+.page .animal-input-label{font-size:16.8px}
+.page .animal-input-affix--middle{min-height:46px;padding:0 20px;font-size:15.6px}
+.page .animal-input-affix--textarea{min-height:86px;padding:10px 18px}
+.page .animal-input-field--textarea{min-height:62px;font-size:15.6px}
+.page .animal-input-field{font-size:15.6px}
+.page .animal-btn--middle{height:42px;padding:0 24px;font-size:16.8px}
+.page .animal-btn--small{height:34px;padding:0 18px;font-size:14.4px}
+.page .animal-btn--large{height:58px;padding:0 28px;font-size:19.2px}
+.page .animal-input-affix--date{position:relative}
+.page .animal-input-affix--date .animal-input-field{color:var(--text-body);padding-right:40px}
+.page .animal-input-affix--date .animal-input-field::-webkit-calendar-picker-indicator{opacity:0;width:0;height:0;position:absolute;pointer-events:none}
+.page .animal-input-date-trigger{position:absolute;right:12px;top:50%;transform:translateY(-50%);border:none;background:transparent;padding:0;display:flex;align-items:center;cursor:pointer;line-height:0}
+.page .animal-input-date-trigger .animal-item-icon{width:24px;height:24px}
+@media (max-width:900px){
+  body{padding:14px 18px 28px}
+  .page{max-width:none}
+  .page-main{grid-template-columns:1fr;gap:16px}
+  .basic-row{grid-template-columns:1fr}
+  .s2-grid{grid-template-columns:1fr}
+  .preview-area{min-height:280px}
+}
+@keyframes bgScroll{0%{background-position:100% 0}100%{background-position:0 100%}}
+@keyframes btn-loading{to{background-position:-28.28px 0}}
+@keyframes blink{50%{opacity:0}}
+@keyframes leafWiggle{0%,100%{transform:rotate(0deg)}50%{transform:rotate(8deg)}}
+@keyframes float{0%,100%{transform:translateY(0) rotate(0deg)}50%{transform:translateY(-6px) rotate(8deg)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes checkPop{0%{transform:scale(0.4)}60%{transform:scale(1.2)}100%{transform:scale(1)}}
 
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif;
-      background: #f5f6f8;
-      color: #1a1a2e;
-      line-height: 1.6;
-      padding: 24px 16px 48px;
-    }
+/* Button */
+.animal-btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:2px solid transparent;font-family:inherit;font-weight:600;letter-spacing:0.02em;line-height:1;cursor:pointer;transition:all var(--d-fast) var(--ease);white-space:nowrap}
+.animal-btn--small{height:32px;padding:0 16px;font-size:12px;border-radius:16px}
+.animal-btn--middle{height:45px;padding:0 20px;font-size:14px;border-radius:50px}
+.animal-btn--large{height:48px;padding:0 32px;font-size:16px;border-radius:24px}
+.animal-btn--block{display:flex;width:100%}
+.animal-btn--primary{color:#794f27;background:#f8f8f0;border-color:#f8f8f0;box-shadow:0 5px 0 0 #bdaea0}
+.animal-btn--primary:hover{box-shadow:0 6px 0 0 #bdaea0;transform:translateY(-1px)}
+.animal-btn--primary:active{box-shadow:0 1px 0 0 #bdaea0;transform:translateY(2px)}
+.animal-btn--primary:focus-visible{outline:2px solid #19c8b9;outline-offset:2px}
+.animal-btn--danger{color:#fff;background:var(--error);border-color:var(--error);box-shadow:0 5px 0 0 #c94444}
+.animal-btn--danger:hover{box-shadow:0 6px 0 0 #c94444;transform:translateY(-1px)}
+.animal-btn--danger:active{box-shadow:0 1px 0 0 #c94444;transform:translateY(2px)}
+.animal-btn--default,.animal-btn--dashed{color:var(--text-body);background:#f8f8f0;border-color:#9f927d;box-shadow:0 2px 4px 0 rgba(61,52,40,0.06)}
+.animal-btn--dashed{border-style:dashed}
+.animal-btn--default:hover,.animal-btn--dashed:hover{color:var(--primary);border-color:var(--primary);box-shadow:0 3px 10px 0 rgba(61,52,40,0.10);transform:translateY(-1px)}
+.animal-btn--default:active,.animal-btn--dashed:active{color:var(--primary-active);border-color:var(--primary-active);transform:translateY(0);box-shadow:0 2px 4px 0 rgba(61,52,40,0.06)}
+.animal-btn--text,.animal-btn--link{background:transparent;border-color:transparent;box-shadow:none;color:var(--text-body)}
+.animal-btn--link{text-decoration:underline}
+.animal-btn--text:hover,.animal-btn--link:hover{color:var(--primary)}
+.animal-btn--ghost{background:transparent!important;box-shadow:none!important}
+.animal-btn--loading{background:#0ec4b6!important;background-image:repeating-linear-gradient(-45deg,#0ec4b6 0 10px,#01b0a7 10px 20px)!important;background-size:28.28px 28.28px!important;border:4px solid #4de2da!important;color:#fff!important;box-shadow:none!important;animation:btn-loading 1s linear infinite;pointer-events:none}
+.animal-btn:disabled{opacity:0.5;cursor:not-allowed;box-shadow:none!important;transform:none!important}
 
-    .container {
-      max-width: 720px;
-      margin: 0 auto;
-    }
+/* Input */
+.animal-input-wrap{display:flex;flex-direction:column;gap:6px;width:100%}
+.animal-input-label{font-size:14px;font-weight:500;color:var(--text-body)}
+.animal-input-affix{display:flex;align-items:center;gap:6px;width:100%;background:rgb(247,243,223);border:2px solid var(--border);color:var(--text-body);font-weight:500;letter-spacing:0.01em;transition:all var(--d-fast) var(--ease)}
+.animal-input-affix--small{min-height:32px;padding:0 14px;font-size:12px;border-radius:40px}
+.animal-input-affix--middle{min-height:40px;padding:0 18px;font-size:14px;border-radius:50px}
+.animal-input-affix--large{min-height:48px;padding:0 22px;font-size:16px;border-radius:50px}
+.animal-input-affix--textarea{align-items:stretch;padding:8px 14px;border-radius:var(--r-base);min-height:72px}
+.animal-input-affix:hover{border-color:var(--border-hover)}
+.animal-input-affix:focus-within{border-color:var(--focus-yellow);box-shadow:0 0 0 3px rgba(255,204,0,0.15)}
+.animal-input-affix--shadow.animal-input-affix--small{box-shadow:0 2px 0 0 var(--shadow-input)}
+.animal-input-affix--shadow.animal-input-affix--middle{box-shadow:0 3px 0 0 var(--shadow-input)}
+.animal-input-affix--shadow.animal-input-affix--large{box-shadow:0 4px 0 0 var(--shadow-input)}
+.animal-input-affix--shadow:focus-within{box-shadow:0 0 0 3px rgba(255,204,0,0.15),0 3px 0 0 var(--focus-yellow-d)}
+.animal-input-affix--error{box-shadow:0 3px 0 0 #c94444}
+.animal-input-affix--warning{box-shadow:0 3px 0 0 #dba90e}
+.animal-input-affix--disabled{background:#ece8dc;border-color:#d4c9b4;opacity:0.6;pointer-events:none}
+.animal-input-field{flex:1;border:none;background:transparent;color:var(--text-body);font:inherit;font-weight:500;letter-spacing:0.01em;outline:none;width:100%}
+.animal-input-field::placeholder{color:var(--text-disabled);font-weight:400}
+.animal-input-field:disabled{color:var(--text-disabled)}
+.animal-input-field--textarea{resize:vertical;min-height:52px;line-height:1.5}
+.animal-input-prefix,.animal-input-suffix{color:#a0936e;font-size:14px}
+.animal-input-clear{width:20px;height:20px;border:none;border-radius:50%;background:transparent;color:var(--text-disabled);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px}
+.animal-input-clear:hover{background:rgba(114,93,66,0.1);color:var(--text-body)}
 
-    h1 {
-      font-size: 1.5rem;
-      font-weight: 600;
-      margin-bottom: 4px;
-    }
+/* Switch */
+.animal-switch{display:inline-flex;align-items:center;gap:8px;cursor:pointer}
+.animal-switch--disabled{opacity:0.5;cursor:not-allowed;pointer-events:none}
+.animal-switch-track{position:relative;min-width:52px;height:28px;border-radius:50px;background:#d4c9b4;border:2.5px solid var(--border);box-shadow:inset 0 2px 4px rgba(114,93,66,0.15);transition:all var(--d-base) var(--ease)}
+.animal-switch--small .animal-switch-track{min-width:38px;height:20px}
+.animal-switch-track:hover{border-color:var(--border-hover)}
+.animal-switch--checked .animal-switch-track{background:#86d67a;border-color:var(--success);box-shadow:inset 0 2px 4px rgba(90,158,30,0.20)}
+.animal-switch--checked .animal-switch-track:hover{background:#7ccc70;border-color:var(--success-active)}
+.animal-switch-handle{position:absolute;top:50%;left:2px;width:21px;height:21px;border-radius:50%;background:rgb(247,243,223);border:2.5px solid var(--border);transform:translateY(-50%);transition:left var(--d-base) var(--ease)}
+.animal-switch--small .animal-switch-handle{width:14px;height:14px;left:1px}
+.animal-switch--checked .animal-switch-handle{left:calc(100% - 24px);border-color:var(--success)}
+.animal-switch--small.animal-switch--checked .animal-switch-handle{left:calc(100% - 16px)}
+.animal-switch:focus-visible .animal-switch-track{outline:2px solid var(--focus-yellow);outline-offset:2px}
+.animal-switch-inner{position:absolute;inset:0;display:flex;align-items:center;font-size:11px;font-weight:700;color:#fff;letter-spacing:0.02em;text-shadow:0 1px 1px rgba(0,0,0,0.1);padding:0 8px 0 28px;pointer-events:none}
+.animal-switch--checked .animal-switch-inner{padding:0 28px 0 8px;justify-content:flex-end}
+.animal-switch--small .animal-switch-inner{font-size:9px;padding:0 6px 0 20px}
+.animal-switch--small.animal-switch--checked .animal-switch-inner{padding:0 20px 0 6px}
+.animal-switch-spinner{width:11px;height:11px;border:2px solid #a89878;border-right-color:transparent;border-radius:50%;animation:spin 0.6s linear infinite;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%)}
+.animal-switch--checked .animal-switch-spinner{border-color:var(--success);border-right-color:transparent}
 
-    .subtitle {
-      color: #666;
-      font-size: 0.875rem;
-      margin-bottom: 24px;
-    }
+/* Checkbox */
+.animal-checkbox{display:inline-flex;align-items:center;gap:8px;cursor:pointer;user-select:none}
+.animal-checkbox--disabled{opacity:0.55;cursor:not-allowed}
+.animal-checkbox-box{display:flex;align-items:center;justify-content:center;background:rgb(247,243,223);border:2.5px solid var(--border);border-radius:8px;transition:all var(--d-fast) var(--ease)}
+.animal-checkbox--small .animal-checkbox-box{width:18px;height:18px}
+.animal-checkbox--middle .animal-checkbox-box{width:22px;height:22px}
+.animal-checkbox--large .animal-checkbox-box{width:28px;height:28px}
+.animal-checkbox:hover .animal-checkbox-box{border-color:var(--primary);transform:translateY(-1px)}
+.animal-checkbox--checked .animal-checkbox-box{background:var(--primary);border-color:var(--primary-active);animation:checkPop 0.15s var(--ease)}
+.animal-checkbox:focus-visible .animal-checkbox-box{outline:2px solid var(--focus-yellow);outline-offset:2px}
+.animal-checkbox-label{color:var(--text-body);font-weight:500;letter-spacing:0.01em}
+.animal-checkbox--small .animal-checkbox-label{font-size:12px}
+.animal-checkbox--middle .animal-checkbox-label{font-size:14px}
+.animal-checkbox--large .animal-checkbox-label{font-size:16px}
+.animal-checkbox:hover .animal-checkbox-label{color:var(--text)}
+.animal-checkbox-group{display:flex;gap:12px;flex-wrap:wrap}
+.animal-checkbox-group--vertical{flex-direction:column;gap:8px}
 
-    .card {
-      background: #fff;
-      border-radius: 10px;
-      padding: 20px;
-      margin-bottom: 16px;
-      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
-    }
+/* Radio */
+.animal-radio-group{display:flex;gap:16px;flex-wrap:wrap}
+.animal-radio-group--vertical{flex-direction:column;gap:8px}
+.animal-radio-item{display:inline-flex;align-items:center;gap:8px;cursor:pointer}
+.animal-radio-item--disabled{opacity:0.55;cursor:not-allowed}
+.animal-radio-circle{display:flex;align-items:center;justify-content:center;background:rgb(247,243,223);border:2px solid var(--border);transition:all var(--d-fast) var(--ease)}
+.animal-radio--small .animal-radio-circle{width:18px;height:18px;border-radius:12px}
+.animal-radio--middle .animal-radio-circle{width:22px;height:22px;border-radius:14px}
+.animal-radio--large .animal-radio-circle{width:28px;height:28px;border-radius:16px}
+.animal-radio-item:hover .animal-radio-circle{border-color:var(--primary);transform:translateY(-1px)}
+.animal-radio-item--checked .animal-radio-circle{background:var(--primary);border-color:var(--primary-active);animation:checkPop 0.15s var(--ease)}
+.animal-radio-item:focus-visible .animal-radio-circle{outline:2px solid var(--focus-yellow);outline-offset:2px}
+.animal-radio-label{color:var(--text-body);font-weight:500;letter-spacing:0.01em}
+.animal-radio--small .animal-radio-label{font-size:12px}
+.animal-radio--middle .animal-radio-label{font-size:14px}
+.animal-radio--large .animal-radio-label{font-size:16px}
+.animal-radio-item--checked .animal-radio-label{color:var(--text)}
 
-    .card-title {
-      font-size: 0.95rem;
-      font-weight: 600;
-      margin-bottom: 12px;
-      color: #333;
-    }
+/* Card */
+.animal-card{background:rgb(247,243,223);padding:16px 24px;color:var(--text-body);font-weight:500;border-radius:20px;transition:transform 0.3s ease;cursor:pointer}
+.animal-card:hover{transform:translateY(-2px)}
+.animal-card--static{cursor:default}
+.animal-card--static:hover{transform:none}
+.animal-card--dashed{background:rgb(250,248,242);border:2px dashed #e8dcc8;cursor:default}
+.animal-card--dashed:hover{border-color:#d4c4a8;transform:none}
+.animal-card--color-default{background:rgb(247,243,223);color:#725d42}
+.animal-card--color-app-pink{background:#f8a6b2;color:#fff}
+.animal-card--color-purple{background:#b77dee;color:#fff}
+.animal-card--color-app-blue{background:#889df0;color:#fff}
+.animal-card--color-app-yellow{background:#f7cd67;color:#725d42}
+.animal-card--color-app-orange{background:#e59266;color:#fff}
+.animal-card--color-app-teal{background:#82d5bb;color:#fff}
+.animal-card--color-app-green{background:#8ac68a;color:#fff}
+.animal-card--color-app-red{background:#fc736d;color:#fff}
+.animal-card--color-lime-green{background:#d1da49;color:#3d5a1a}
+.animal-card--color-yellow-green{background:#ecdf52;color:#725d42}
+.animal-card--color-brown{background:#9a835a;color:#fff}
+.animal-card--color-warm-peach-pink{background:#e18c6f;color:#fff}
+.animal-card--pattern-default{background:radial-gradient(circle,rgba(196,184,158,0.18) 1.5px,transparent 1.5px) 0 0/28px 28px,radial-gradient(circle,rgba(220,210,190,0.12) 1px,transparent 1px) 7px 7px/14px 14px,rgb(247,243,223);border:1.5px solid #c4b89e;color:#725d42}
+.animal-card--pattern-app-pink{background:radial-gradient(circle,rgba(248,166,178,0.18) 1.5px,transparent 1.5px) 0 0/28px 28px,radial-gradient(circle,rgba(255,200,210,0.12) 1px,transparent 1px) 7px 7px/14px 14px,#fde4e8;border:1.5px solid #f8a6b2;color:#a85565}
+.animal-card--pattern-purple{background:radial-gradient(circle,rgba(183,125,238,0.18) 1.5px,transparent 1.5px) 0 0/28px 28px,radial-gradient(circle,rgba(210,180,245,0.12) 1px,transparent 1px) 7px 7px/14px 14px,#ede0fa;border:1.5px solid #b77dee;color:#6a3a9a}
+.animal-card--pattern-app-blue{background:radial-gradient(circle,rgba(136,157,240,0.18) 1.5px,transparent 1.5px) 0 0/28px 28px,radial-gradient(circle,rgba(180,195,250,0.12) 1px,transparent 1px) 7px 7px/14px 14px,#e8ecfa;border:1.5px solid #889df0;color:#3d4a8a}
+.animal-card--pattern-app-yellow{background:radial-gradient(circle,rgba(247,205,103,0.18) 1.5px,transparent 1.5px) 0 0/28px 28px,radial-gradient(circle,rgba(255,230,160,0.12) 1px,transparent 1px) 7px 7px/14px 14px,#faf0d0;border:1.5px solid #f7cd67;color:#725d42}
+.animal-card--pattern-app-orange{background:radial-gradient(circle,rgba(229,146,102,0.18) 1.5px,transparent 1.5px) 0 0/28px 28px,radial-gradient(circle,rgba(250,190,160,0.12) 1px,transparent 1px) 7px 7px/14px 14px,#fae8dc;border:1.5px solid #e59266;color:#8a4020}
+.animal-card--pattern-app-teal{background:radial-gradient(circle,rgba(130,213,187,0.18) 1.5px,transparent 1.5px) 0 0/28px 28px,radial-gradient(circle,rgba(180,235,215,0.12) 1px,transparent 1px) 7px 7px/14px 14px,#e0f5ee;border:1.5px solid #82d5bb;color:#186048}
+.animal-card--pattern-app-green{background:radial-gradient(circle,rgba(138,198,138,0.18) 1.5px,transparent 1.5px) 0 0/28px 28px,radial-gradient(circle,rgba(190,230,190,0.12) 1px,transparent 1px) 7px 7px/14px 14px,#e8f5e8;border:1.5px solid #8ac68a;color:#205020}
+.animal-card--pattern-app-red{background:radial-gradient(circle,rgba(252,115,109,0.18) 1.5px,transparent 1.5px) 0 0/28px 28px,radial-gradient(circle,rgba(255,180,175,0.12) 1px,transparent 1px) 7px 7px/14px 14px,#fae0de;border:1.5px solid #fc736d;color:#900010}
+.animal-card--pattern-lime-green{background:radial-gradient(circle,rgba(209,218,73,0.18) 1.5px,transparent 1.5px) 0 0/28px 28px,radial-gradient(circle,rgba(230,235,130,0.12) 1px,transparent 1px) 7px 7px/14px 14px,#f0f2c8;border:1.5px solid #d1da49;color:#3d5a1a}
+.animal-card--pattern-yellow-green{background:radial-gradient(circle,rgba(236,223,82,0.18) 1.5px,transparent 1.5px) 0 0/28px 28px,radial-gradient(circle,rgba(245,235,140,0.12) 1px,transparent 1px) 7px 7px/14px 14px,#f8f2c0;border:1.5px solid #ecdf52;color:#725d42}
+.animal-card--pattern-brown{background:radial-gradient(circle,rgba(154,131,90,0.18) 1.5px,transparent 1.5px) 0 0/28px 28px,radial-gradient(circle,rgba(190,170,130,0.12) 1px,transparent 1px) 7px 7px/14px 14px,#ede4d4;border:1.5px solid #9a835a;color:#3d2e1e}
+.animal-card--pattern-warm-peach-pink{background:radial-gradient(circle,rgba(225,140,111,0.18) 1.5px,transparent 1.5px) 0 0/28px 28px,radial-gradient(circle,rgba(245,190,170,0.12) 1px,transparent 1px) 7px 7px/14px 14px,#fae8e0;border:1.5px solid #e18c6f;color:#6a2a10}
 
-    label {
-      display: block;
-      font-size: 0.875rem;
-      color: #555;
-      margin-bottom: 6px;
-    }
+/* Title ribbon — mirrors src/components/Title/title.module.less */
+.animal-title{display:inline-block;font-weight:800;line-height:1;user-select:none}
+.animal-ribbon{--rf:#27d039;--rb:#20992a;--rk:#115017;--rt:#fff;position:relative;display:inline-flex;align-items:center;justify-content:center;height:2em;padding:0 1.6em;color:var(--rt);font-weight:900;letter-spacing:0.04em;white-space:nowrap;filter:drop-shadow(0 0.08em 0.12em rgba(0,0,0,0.05))}
+.animal-ribbon-text{position:relative;z-index:4;font-size:inherit;display:inline-flex;align-items:center;height:2em;padding-top:0.11em;color:var(--rt);text-shadow:0 0.04em 0.08em rgba(0,0,0,0.05)}
+.animal-ribbon-back{position:absolute;font-size:inherit;bottom:-0.4em;width:1.7em;height:1.7em;background:var(--rb);z-index:1}
+.animal-ribbon-back-left{left:-0.6em;border-radius:0.08em 0 0 0.08em;clip-path:polygon(100% 0%,100% 100%,0% 100%,30% 50%,0% 0%)}
+.animal-ribbon-back-right{right:-0.6em;border-radius:0 0.08em 0.08em 0;clip-path:polygon(0% 0%,100% 0%,70% 50%,100% 100%,0% 100%)}
+.animal-ribbon-fold{position:absolute;font-size:inherit;top:calc(100% - 0.04em);width:0;height:0;border-style:solid;z-index:2}
+.animal-ribbon-fold-left{left:0.15em;top:calc(100% - 0.05em);border-width:0 0.95em 0.45em 0;border-color:transparent var(--rk) transparent transparent;transform-origin:top left}
+.animal-ribbon-fold-right{right:0.16em;top:calc(100% - 0.05em);border-width:0 0 0.45em 0.95em;border-color:transparent transparent transparent var(--rk)}
+.animal-ribbon-front{position:absolute;font-size:inherit;inset:0 0.1em;background:var(--rf);border-radius:0.2em;z-index:3;transform:perspective(11.5em) rotateX(3deg);box-shadow:inset 0 -0.06em 0 rgba(0,0,0,0.05);pointer-events:none}
+.animal-ribbon-color-app-pink{--rf:#f8a6b2;--rb:#e06880;--rk:#a03060;--rt:#fff}
+.animal-ribbon-color-purple{--rf:#b77dee;--rb:#9050d0;--rk:#5a1a9a;--rt:#fff}
+.animal-ribbon-color-app-blue{--rf:#889df0;--rb:#5068d8;--rk:#2030a0;--rt:#fff}
+.animal-ribbon-color-app-yellow{--rf:#f7cd67;--rb:#d4a030;--rk:#8a6010;--rt:#725d42}
+.animal-ribbon-color-app-orange{--rf:#e59266;--rb:#c06a30;--rk:#7a3a10;--rt:#fff}
+.animal-ribbon-color-app-teal{--rf:#82d5bb;--rb:#40a880;--rk:#186048;--rt:#fff}
+.animal-ribbon-color-app-green{--rf:#8ac68a;--rb:#509050;--rk:#205020;--rt:#fff}
+.animal-ribbon-color-app-red{--rf:#fc736d;--rb:#d43030;--rk:#900010;--rt:#fff}
+.animal-ribbon-color-lime-green{--rf:#d1da49;--rb:#90a010;--rk:#485800;--rt:#3d5a1a}
+.animal-ribbon-color-yellow-green{--rf:#ecdf52;--rb:#c0b010;--rk:#706800;--rt:#725d42}
+.animal-ribbon-color-brown{--rf:#9a835a;--rb:#705830;--rk:#3a2810;--rt:#fff}
+.animal-ribbon-color-warm-peach-pink{--rf:#e18c6f;--rb:#b85a30;--rk:#6a2a10;--rt:#fff}
 
-    input[type="text"],
-    textarea {
-      width: 100%;
-      padding: 8px 12px;
-      border: 1px solid #d0d5dd;
-      border-radius: 6px;
-      font-size: 0.9rem;
-      font-family: inherit;
-      transition: border-color 0.15s;
-    }
+/* Collapse */
+.animal-collapse{background:rgb(247,243,223);border:2px solid var(--border-strong);border-radius:18px;margin-bottom:12px;overflow:hidden}
+.animal-collapse-header{display:flex;align-items:center;gap:12px;padding:16px 24px;font-size:16px;font-weight:600;line-height:1.4;color:var(--text);cursor:pointer;letter-spacing:0.02em}
+.animal-collapse-icon{width:28px;height:28px;border-radius:50%;background:var(--primary);color:#fff;font-weight:700;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 4px rgba(25,200,185,0.3);flex-shrink:0;transition:transform var(--d-base) var(--ease)}
+.animal-collapse--open .animal-collapse-icon{transform:rotate(180deg)}
+.animal-collapse-body{display:grid;grid-template-rows:0fr;transition:grid-template-rows 0.3s var(--ease)}
+.animal-collapse--open .animal-collapse-body{grid-template-rows:1fr}
+.animal-collapse-inner{overflow:hidden}
+.animal-collapse-content{padding:0 24px 16px;color:var(--text-body);font-weight:500}
 
-    input[type="text"]:focus,
-    textarea:focus {
-      outline: none;
-      border-color: #4a7cff;
-    }
+/* Tabs */
+.animal-tabs{background:rgb(247,243,223);border:2px solid var(--border-strong);border-radius:24px;overflow:hidden}
+.animal-tabs-list{display:flex;flex-wrap:wrap;gap:6px;padding:16px;background:rgba(255,255,255,0.6);border-bottom:2px solid var(--border)}
+.animal-tab{padding:8px 16px;border-radius:24px;color:var(--text-body);font-weight:500;cursor:pointer;border:none;background:transparent;font-family:inherit;font-size:14px;letter-spacing:0.01em;transition:all var(--d-fast) var(--ease);position:relative}
+.animal-tab:hover{background:rgba(25,200,185,0.1)}
+.animal-tab--active{background:#0CC0B5!important;color:#FFF9E3!important;font-weight:600}
+.animal-tab-leaf{position:absolute;top:-4px;right:-4px;width:18px;height:18px;animation:leafWiggle 2s ease-in-out infinite}
+.animal-tabs-panel{padding:20px 24px;font-weight:500;color:var(--text-body)}
 
-    textarea {
-      resize: vertical;
-      min-height: 72px;
-    }
+/* Modal */
+.animal-modal-backdrop{position:fixed;inset:0;background:rgba(40,30,20,0.45);backdrop-filter:blur(2px);display:flex;align-items:center;justify-content:center;z-index:1000;padding:20px}
+.animal-modal{clip-path:url(#animal-modal-clip);background:rgb(247,243,223);padding:48px 48px 32px;color:var(--text-body);max-width:480px;width:100%;position:relative}
+.animal-modal-title{font-size:20px;font-weight:700;color:var(--text);margin-bottom:16px;letter-spacing:0.02em}
+.animal-modal-body{margin-bottom:24px;font-weight:500;line-height:1.6}
+.animal-modal-footer{display:flex;gap:12px;justify-content:flex-end}
+.animal-modal-confirm{height:45px;padding:0 24px;border-radius:50px;border:2px solid #ffcc00;background:#ffcc00;color:var(--text-body);font-weight:600;font-family:inherit;cursor:pointer;box-shadow:0 5px 0 0 #e0b800;letter-spacing:0.02em}
+.animal-modal-confirm:active{box-shadow:0 1px 0 0 #e0b800;transform:translateY(2px)}
 
-    textarea:disabled {
-      background: #f0f0f0;
-      color: #999;
-    }
+/* Select */
+.animal-select{position:relative;display:inline-block;width:100%}
+.animal-select-trigger{display:flex;align-items:center;justify-content:space-between;gap:8px;background:#fff;border:2px solid #e8dcc8;border-radius:12px;padding:8px 13px;color:var(--text-body);font-weight:600;font-size:14px;cursor:pointer;letter-spacing:0.01em;width:100%;font-family:inherit}
+.animal-select-trigger:hover{border-color:#d4c4a8;background:#fffdf7}
+.animal-select--open .animal-select-trigger{color:var(--primary)}
+.animal-select--open .animal-select-arrow{transform:rotate(180deg);color:var(--primary)}
+.animal-select-placeholder{color:#a09080;font-weight:500}
+.animal-select-arrow{color:#a09080;transition:transform var(--d-fast) var(--ease)}
+.animal-select-dropdown{position:absolute;top:calc(100% + 6px);left:0;right:0;background:#FFEEA0;border-radius:28px;padding:12px 0;z-index:100;opacity:0;pointer-events:none;transform:translateY(-4px);transition:opacity 0.2s var(--ease),transform 0.2s var(--ease)}
+.animal-select--open .animal-select-dropdown{opacity:1;pointer-events:auto;transform:translateY(0)}
+.animal-select-option{display:flex;align-items:center;padding:10px 30px 10px 14px;font-size:14px;font-weight:500;color:var(--text-body);cursor:pointer;position:relative}
+.animal-select-option::before{content:'';position:absolute;inset:4px 8px;border-radius:50px;background:transparent;z-index:-1;transition:background var(--d-fast) var(--ease)}
+.animal-select-option:hover::before{background:rgba(255,255,255,0.45)}
+.animal-select-option--selected{font-weight:700}
+.animal-select-option--selected::before{background:rgba(255,255,255,0.65)}
 
-    .none-row {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 10px;
-      font-size: 0.875rem;
-      color: #555;
-    }
+/* Tooltip */
+.animal-tooltip-wrap{position:relative;display:inline-flex}
+.animal-tooltip{position:absolute;z-index:100;pointer-events:none;opacity:0;transition:opacity var(--d-fast) var(--ease)}
+.animal-tooltip--visible{opacity:1}
+.animal-tooltip--default{background:rgb(247,243,223);border:2px solid var(--border);border-radius:16px;padding:6px 12px;max-width:240px;font-size:12px;font-weight:500;color:var(--text-body);line-height:1.5;box-shadow:0 3px 10px rgba(61,52,40,0.10)}
+.animal-tooltip--island{background:transparent;border:none;padding:12px 20px;max-width:280px;font-weight:600;line-height:1.55;text-align:center;color:var(--text-body)}
+.animal-tooltip--top{bottom:calc(100% + 10px);left:50%;transform:translateX(-50%)}
+.animal-tooltip--bottom{top:calc(100% + 10px);left:50%;transform:translateX(-50%)}
+.animal-tooltip-arrow--default{width:8px;height:8px;background:rgb(247,243,223);border:2px solid var(--border);border-radius:2px;transform:rotate(45deg);position:absolute}
+.animal-tooltip--top .animal-tooltip-arrow--default{bottom:-6px;left:50%;margin-left:-4px;border-top:none;border-left:none}
+.animal-tooltip-dot{width:14px;height:14px;border-radius:50%;background:var(--text-body);filter:drop-shadow(0 4px 14px rgba(121,79,39,0.14));position:absolute;left:50%;margin-left:-7px}
+.animal-tooltip--top .animal-tooltip-dot{bottom:-18px}
 
-    .none-row input[type="checkbox"] {
-      width: 16px;
-      height: 16px;
-      cursor: pointer;
-    }
+/* Loading */
+.animal-loading{position:absolute;inset:0;background:#000;overflow:hidden;display:flex;align-items:center;justify-content:center;z-index:999}
+.animal-loading-mask{position:absolute;inset:0;--mask-r:0%;mask:radial-gradient(circle at center,transparent var(--mask-r),black calc(var(--mask-r) + 1px));-webkit-mask:radial-gradient(circle at center,transparent var(--mask-r),black calc(var(--mask-r) + 1px))}
+.animal-loading-spinner{color:#19c8b9;animation:spin 1s linear infinite}
+.animal-loading-spinner circle{animation:dash 1.5s ease-in-out infinite}
+@keyframes dash{0%{stroke-dasharray:1,150;stroke-dashoffset:0}50%{stroke-dasharray:90,150;stroke-dashoffset:-35}100%{stroke-dasharray:90,150;stroke-dashoffset:-124}}
 
-    .list-items {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
+/* Table */
+.animal-table-wrap{background:rgb(247,243,223);border-radius:20px;padding:6px;position:relative;overflow:hidden}
+.animal-table{width:100%;border-collapse:collapse}
+.animal-table th{padding:16px 20px;font-size:14px;font-weight:700;color:var(--text-body);letter-spacing:0.02em;text-align:left;position:relative}
+.animal-table th::after,.animal-table td::after{content:'';position:absolute;left:20px;right:20px;bottom:0;height:1px;background:repeating-linear-gradient(to right,rgb(240,232,216) 0 6px,transparent 6px 12px)}
+.animal-table td{padding:14px 20px;font-size:14px;font-weight:500;color:var(--text-body);line-height:1.6;position:relative}
+.animal-table tr:last-child td::after{display:none}
+.animal-table tr.striped td{background:rgba(248,248,240,0.6)}
+.animal-table tr:hover td{background:repeating-linear-gradient(-45deg,rgba(25,200,185,0.6) 0 10px,rgba(14,196,182,0.6) 10px 20px);background-size:28.28px 28.28px;color:#3d2e1e}
+.animal-table-empty{padding:60px 20px;text-align:center;color:var(--text-secondary)}
+.animal-table-overlay{position:absolute;inset:0;background:rgba(247,243,223,0.8);backdrop-filter:blur(2px);display:flex;align-items:center;justify-content:center}
 
-    .list-item {
-      display: flex;
-      gap: 8px;
-      align-items: center;
-    }
+/* Time */
+.animal-time{display:inline-flex;align-items:center;gap:24px;padding:16px 36px;background:linear-gradient(180deg,#fff 0%,#f8f8f0 100%);border:3px solid #d4cfc3;border-radius:18px}
+.animal-time-date{border-right:3px solid rgba(159,146,125,0.35);padding-right:24px;text-align:left}
+.animal-time-weekday{color:var(--success);font-weight:900;font-size:14px;letter-spacing:0.04em}
+.animal-time-day{color:#8b7355;font-weight:800;font-size:22px;letter-spacing:0.02em}
+.animal-time-clock{color:#8b7355;font-weight:900;font-size:48px;letter-spacing:2px;line-height:1}
+.animal-time-colon--blink{animation:blink 1s step-end infinite}
 
-    .list-item input {
-      flex: 1;
-    }
+/* Divider */
+.animal-divider{height:12px;background:center/contain no-repeat;margin:20px 0;border:none}
+.animal-divider--line-brown{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='12'%3E%3Cline x1='0' y1='6' x2='200' y2='6' stroke='%23D8D0C3' stroke-width='2'/%3E%3C/svg%3E")}
+.animal-divider--line-teal{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='12'%3E%3Cline x1='0' y1='6' x2='200' y2='6' stroke='%2319c8b9' stroke-width='2'/%3E%3C/svg%3E")}
+.animal-divider--line-yellow{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='12'%3E%3Cline x1='0' y1='6' x2='200' y2='6' stroke='%23f5c31c' stroke-width='2'/%3E%3C/svg%3E")}
+.animal-divider--dashed-brown{background-image:repeating-linear-gradient(to right,#D8D0C3 0 8px,transparent 8px 16px);background-size:16px 2px;background-position:center;background-repeat:repeat-x}
+.animal-divider--dashed-teal{background-image:repeating-linear-gradient(to right,#19c8b9 0 8px,transparent 8px 16px);background-size:16px 2px;background-position:center;background-repeat:repeat-x}
+.animal-divider--line-white{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='12'%3E%3Cline x1='0' y1='6' x2='200' y2='6' stroke='%23f8f8f0' stroke-width='2'/%3E%3C/svg%3E")}
+.animal-divider--wave-yellow{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='12'%3E%3Cpath d='M0 6 Q25 0 50 6 T100 6 T150 6 T200 6' fill='none' stroke='%23f5c31c' stroke-width='2'/%3E%3C/svg%3E")}
+.animal-divider--dashed-white{background-image:repeating-linear-gradient(to right,#f8f8f0 0 8px,transparent 8px 16px);background-size:16px 2px;background-position:center;background-repeat:repeat-x}
 
-    .btn {
-      padding: 8px 16px;
-      border: none;
-      border-radius: 6px;
-      font-size: 0.875rem;
-      font-family: inherit;
-      cursor: pointer;
-      transition: background 0.15s;
-    }
+/* Footer */
+.animal-footer{width:100%;margin-top:20px}
+.animal-footer--tree{height:60px;background:linear-gradient(to top,#6fba2c 0%,#8ac68a 40%,transparent 40%),radial-gradient(ellipse 80px 50px at 15% 100%,#509050,transparent),radial-gradient(ellipse 60px 40px at 85% 100%,#509050,transparent);background-color:var(--bg)}
+.animal-footer--sea{height:80px;background:linear-gradient(to bottom,#98D2E3 0%,#327A93 55%,#008077 100%);position:relative;overflow:hidden;border-radius:12px 12px 0 0}
+.animal-footer--sea::after{content:'';position:absolute;bottom:8px;left:20%;width:24px;height:24px;background:#EC7175;border-radius:50% 50% 20% 20%}
 
-    .btn-add {
-      background: #eef2ff;
-      color: #4a7cff;
-      margin-top: 8px;
-    }
+/* Cursor — 官方动森大手指（cursor-icon.png，热点 4 0） */
+.animal-cursor,.animal-cursor *{cursor:url('assets/img/cursor-icon.png') 4 0,default!important}
 
-    .btn-add:hover { background: #dce4ff; }
+/* CodeBlock */
+.animal-codeblock{padding:20px 24px;background:#2b2118;border:1px solid #3d3028;border-radius:20px;font-size:14px;line-height:1.7;tab-size:4;font-family:'SF Mono','Fira Code','Cascadia Code',Consolas,monospace;font-weight:600;white-space:pre;overflow:auto;color:#e8d5bc}
+.animal-codeblock .cm{color:#6b5e50}.animal-codeblock .st{color:#a8d4a0}.animal-codeblock .kw{color:#d4a0e0}.animal-codeblock .rx{color:#e06c75}.animal-codeblock .cp{color:#80c0e0}.animal-codeblock .fn{color:#61afef}.animal-codeblock .pr{color:#e8c87a}
 
-    .btn-remove {
-      background: #fee;
-      color: #c44;
-      padding: 8px 12px;
-      flex-shrink: 0;
-    }
-
-    .btn-remove:hover { background: #fdd; }
-
-    .preview-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 12px;
-    }
-
-    .preview-header .card-title { margin-bottom: 0; }
-
-    .btn-copy {
-      background: #4a7cff;
-      color: #fff;
-      font-weight: 500;
-    }
-
-    .btn-copy:hover { background: #3a6ae8; }
-
-    .btn-copy.copied {
-      background: #22a06b;
-    }
-
-    #preview {
-      background: #fafbfc;
-      border: 1px solid #e4e7ec;
-      border-radius: 6px;
-      padding: 16px;
-      font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
-      font-size: 0.9rem;
-      white-space: pre-wrap;
-      word-break: break-all;
-      line-height: 1.8;
-      min-height: 200px;
-    }
-
-    .date-hint {
-      font-size: 0.8rem;
-      color: #888;
-      margin-top: 4px;
-    }
+/* WeddingInvitation */
+.animal-wedding{max-width:420px;margin:0 auto;padding:56px 36px 160px;border-radius:16px;position:relative;background:radial-gradient(ellipse at top,rgba(255,240,220,0.8),transparent 60%),radial-gradient(circle at 80% 20%,rgba(248,166,178,0.3),transparent 40%),rgb(247,243,223);filter:drop-shadow(0 10px 24px rgba(61,52,40,0.18));box-shadow:inset 0 0 0 2px rgba(114,93,66,0.12)}
+.animal-wedding::before{content:'';position:absolute;inset:12px;border-radius:22px 20px 24px 22px;background:radial-gradient(circle,rgba(114,93,66,0.08) 1px,transparent 1px) 0 0/14px 14px;opacity:0.55;pointer-events:none}
+.animal-wedding::after{content:'';position:absolute;inset:20px;border:1.5px dashed rgba(114,93,66,0.35);border-radius:22px 20px 24px 22px / 20px 24px 22px 20px;pointer-events:none}
+.animal-wedding-lottery{position:absolute;bottom:0;left:0;right:0;height:160px;background:rgb(247,243,223);background-image:radial-gradient(circle,rgba(114,93,66,0.7) 0.8px,transparent 0.8px);background-size:10px 5px;box-shadow:inset 0 4px 6px -3px rgba(61,52,40,0.18)}
+.animal-wedding-title{text-align:center;font-weight:800;color:var(--text);font-size:22px;margin-bottom:12px;position:relative;z-index:1}
+.animal-wedding-divider{width:64px;height:2px;margin:16px auto;background:linear-gradient(to right,transparent,#725d42,transparent)}
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>工作汇报生成器</h1>
-    <p class="subtitle">填写内容后复制，直接发到群里汇报</p>
+<svg style="position:absolute;width:0;height:0" aria-hidden="true">
+  <defs>
+    <clipPath id="animal-modal-clip" clipPathUnits="objectBoundingBox">
+      <path d="M0.501,0.005 L0.501,0.005 L0.523,0.005 L0.549,0.006 C0.704,0.01,0.796,0.017,0.825,0.027 L0.827,0.028 C0.872,0.045,0.939,0.044,0.978,0.17 C1,0.254,1,0.365,0.99,0.505 L0.988,0.513 C0.979,0.558,0.971,0.598,0.965,0.633 C0.956,0.689,0.979,0.77,0.964,0.865 C0.953,0.928,0.921,0.966,0.869,0.979 C0.821,0.986,0.773,0.992,0.726,0.995 L0.712,0.996 L0.694,0.997 C0.648,1,0.586,1,0.507,1 L0.501,1 L0.464,1 C0.385,1,0.325,0.998,0.283,0.995 C0.234,0.992,0.184,0.987,0.133,0.979 C0.081,0.966,0.05,0.928,0.039,0.865 C0.023,0.77,0.047,0.689,0.037,0.633 C0.031,0.595,0.023,0.552,0.013,0.505 C-0.006,0.365,-0.002,0.254,0.024,0.17 C0.064,0.045,0.13,0.045,0.174,0.028 L0.175,0.028 C0.204,0.017,0.303,0.009,0.474,0.005 L0.501,0.005"/>
+    </clipPath>
+  </defs>
+</svg>
+<div id="root"></div>
+<script type="text/babel" data-presets="react,typescript">
+const { useState, useEffect, useRef, useCallback, useMemo, Fragment, Children, isValidElement, cloneElement } = React;
 
-    <div class="card">
-      <label for="name">姓名</label>
-      <input type="text" id="name" placeholder="例如：肖明辉">
-      <p class="date-hint" id="dateHint"></p>
-    </div>
+const ICONS = {
+  'arrow-down': (p) => <svg viewBox="0 0 16 16" width={p.size} height={p.size} fill="none" stroke={p.color} strokeWidth="2"><path d="M4 6l4 4 4-4"/></svg>,
+  'arrow-up': (p) => <svg viewBox="0 0 16 16" width={p.size} height={p.size} fill="none" stroke={p.color} strokeWidth="2"><path d="M4 10l4-4 4 4"/></svg>,
+  check: (p) => <svg viewBox="0 0 16 16" width={p.size} height={p.size} fill="none" stroke={p.color} strokeWidth="2.5"><path d="M3 8l4 4 6-7"/></svg>,
+  close: (p) => <svg viewBox="0 0 16 16" width={p.size} height={p.size} fill="none" stroke={p.color} strokeWidth="2"><path d="M4 4l8 8M12 4l-8 8"/></svg>,
+  copy: (p) => <svg viewBox="0 0 16 16" width={p.size} height={p.size} fill="none" stroke={p.color} strokeWidth="1.5"><rect x="5" y="5" width="8" height="8" rx="2"/><path d="M3 11V3h8"/></svg>,
+  leaf: (p) => <svg viewBox="0 0 18 18" width={p.size} height={p.size} fill={p.color}><path d="M9 2C5 6 3 10 3 14c4 0 8-2 12-6-4-1-7-3-6-6z"/></svg>,
+  menu: (p) => <svg viewBox="0 0 16 16" width={p.size} height={p.size} fill="none" stroke={p.color} strokeWidth="2"><path d="M2 4h12M2 8h12M2 12h12"/></svg>,
+  search: (p) => <svg viewBox="0 0 16 16" width={p.size} height={p.size} fill="none" stroke={p.color} strokeWidth="2"><circle cx="7" cy="7" r="4"/><path d="M10 10l4 4"/></svg>,
+  star: (p) => <svg viewBox="0 0 16 16" width={p.size} height={p.size} fill={p.color}><path d="M8 1l2 5h5l-4 3 1.5 5L8 11l-4.5 3L5 9 1 6h5z"/></svg>,
+  trash: (p) => <svg viewBox="0 0 16 16" width={p.size} height={p.size} fill="none" stroke={p.color} strokeWidth="1.5"><path d="M3 4h10M6 4V2h4v2M5 4v9h6V4"/></svg>,
+};
 
-    <div class="card">
-      <div class="card-title">一、领导安排工作</div>
-      <div class="none-row">
-        <input type="checkbox" id="s1-none" checked>
-        <label for="s1-none" style="margin:0;cursor:pointer">暂无</label>
+function Icon({ name, size = 16, color = 'currentColor' }) {
+  const C = ICONS[name];
+  return C ? C({ size, color }) : null;
+}
+
+const LOCAL_ITEM_ICONS = { 477: 'assets/img/item-477.png', 490: 'assets/img/item-490.png' };
+
+function ItemIcon({ item, size = 28, className = '' }) {
+  const src = LOCAL_ITEM_ICONS[item];
+  if (!src) return null;
+  return <img src={src} alt="" width={size} height={size} className={`animal-item-icon ${className}`.trim()} draggable={false} />;
+}
+
+function Button({ type = 'default', size = 'middle', loading, disabled, ghost, block, children, onClick, className = '', ...rest }) {
+  const cls = ['animal-btn', `animal-btn--${size}`, `animal-btn--${type}`, ghost && 'animal-btn--ghost', block && 'animal-btn--block', loading && 'animal-btn--loading', className].filter(Boolean).join(' ');
+  return <button type="button" className={cls} disabled={disabled || loading} onClick={onClick} {...rest}>{children}</button>;
+}
+
+function DateInput({ value, onChange, size = 'middle', className = '' }) {
+  const ref = useRef(null);
+  const openPicker = () => {
+    const el = ref.current;
+    if (!el || el.disabled) return;
+    if (typeof el.showPicker === 'function') el.showPicker();
+    else { el.focus(); el.click(); }
+  };
+  return (
+    <div className={`animal-input-wrap ${className}`}>
+      <div className={`animal-input-affix animal-input-affix--${size} animal-input-affix--date`}>
+        <input ref={ref} className="animal-input-field" type="date" value={value} onChange={onChange} />
+        <button type="button" className="animal-input-date-trigger" onClick={openPicker} aria-label="选择日期">
+          <ItemIcon item={477} size={24} />
+        </button>
       </div>
-      <textarea id="s1" placeholder="填写领导安排的工作内容" disabled></textarea>
     </div>
+  );
+}
 
-    <div class="card">
-      <div class="card-title">二、重点工作事项</div>
-      <div class="list-items" id="s2-list"></div>
-      <button class="btn btn-add" id="s2-add">+ 添加项目</button>
+function Input({ size = 'middle', value, defaultValue, onChange, placeholder, disabled, readOnly, shadow = false, status, prefix, suffix, allowClear, label, rows, type = 'text', className = '' }) {
+  const [inner, setInner] = useState(defaultValue || '');
+  const val = value !== undefined ? value : inner;
+  const setVal = (v) => { if (value === undefined) setInner(v); onChange && onChange({ target: { value: v } }); };
+  const isTextarea = rows != null;
+  const affixCls = ['animal-input-affix', `animal-input-affix--${size}`, type === 'date' && 'animal-input-affix--date', shadow && 'animal-input-affix--shadow', status === 'error' && 'animal-input-affix--error', status === 'warning' && 'animal-input-affix--warning', disabled && 'animal-input-affix--disabled', isTextarea && 'animal-input-affix--textarea'].filter(Boolean).join(' ');
+  const field = isTextarea
+    ? <textarea className="animal-input-field animal-input-field--textarea" rows={rows} value={val} placeholder={placeholder} disabled={disabled} readOnly={readOnly} onChange={(e) => setVal(e.target.value)} />
+    : <input className="animal-input-field" type={type} value={val} placeholder={placeholder} disabled={disabled} readOnly={readOnly} onChange={(e) => setVal(e.target.value)} />;
+  return (
+    <div className={`animal-input-wrap ${className}`}>
+      {label && <span className="animal-input-label">{label}</span>}
+      <div className={affixCls}>{prefix && <span className="animal-input-prefix">{prefix}</span>}{field}{allowClear && val && !disabled && <button type="button" className="animal-input-clear" onClick={() => setVal('')} aria-label="clear">×</button>}{suffix && <span className="animal-input-suffix">{suffix}</span>}</div>
     </div>
+  );
+}
 
-    <div class="card">
-      <div class="card-title">三、需要协助的工作</div>
-      <div class="none-row">
-        <input type="checkbox" id="s3-none" checked>
-        <label for="s3-none" style="margin:0;cursor:pointer">暂无</label>
+function Switch({ checked, defaultChecked, onChange, disabled, loading, size, checkedChildren, unCheckedChildren, className = '' }) {
+  const [on, setOn] = useState(defaultChecked || false);
+  const isOn = checked !== undefined ? checked : on;
+  const toggle = () => { if (disabled || loading) return; const v = !isOn; if (checked === undefined) setOn(v); onChange && onChange(v); };
+  const cls = ['animal-switch', size === 'small' && 'animal-switch--small', isOn && 'animal-switch--checked', disabled && 'animal-switch--disabled', className].filter(Boolean).join(' ');
+  return (
+    <label className={cls} tabIndex={0} onKeyDown={(e) => e.key === ' ' && (e.preventDefault(), toggle())}>
+      <input type="checkbox" checked={isOn} onChange={toggle} disabled={disabled} style={{ position: 'absolute', opacity: 0, width: 0, height: 0 }} />
+      <span className="animal-switch-track">{loading ? <span className="animal-switch-spinner" /> : (checkedChildren || unCheckedChildren) ? <span className="animal-switch-inner">{isOn ? checkedChildren : unCheckedChildren}</span> : null}<span className="animal-switch-handle" /></span>
+    </label>
+  );
+}
+
+function Checkbox({ checked, defaultChecked, onChange, disabled, size = 'middle', children, className = '' }) {
+  const [on, setOn] = useState(defaultChecked || false);
+  const isOn = checked !== undefined ? checked : on;
+  const toggle = () => { if (disabled) return; const v = !isOn; if (checked === undefined) setOn(v); onChange && onChange(v); };
+  const cls = ['animal-checkbox', `animal-checkbox--${size}`, isOn && 'animal-checkbox--checked', disabled && 'animal-checkbox--disabled', className].filter(Boolean).join(' ');
+  return (
+    <label className={cls}>
+      <input type="checkbox" checked={isOn} onChange={toggle} disabled={disabled} style={{ position: 'absolute', opacity: 0, width: 0, height: 0 }} />
+      <span className="animal-checkbox-box">{isOn && <Icon name="check" size={size === 'small' ? 10 : size === 'large' ? 16 : 12} color="#fff" />}</span>
+      {children && <span className="animal-checkbox-label">{children}</span>}
+    </label>
+  );
+}
+
+function Radio({ options = [], value, onChange, disabled, size = 'middle', direction = 'horizontal', className = '' }) {
+  const cls = ['animal-radio-group', direction === 'vertical' && 'animal-radio-group--vertical', className].filter(Boolean).join(' ');
+  const paths = { small: 'M2 8L6 12L14 4', middle: 'M2 8L6 12L14 4', large: 'M2 10L7 15L18 5' };
+  const svgSize = { small: 10, middle: 12, large: 16 };
+  return (
+    <div className={cls} role="radiogroup">
+      {options.map((opt, i) => {
+        const sel = value === opt.value;
+        const off = disabled || opt.disabled;
+        return (
+          <label key={opt.value} className={['animal-radio-item', `animal-radio--${size}`, sel && 'animal-radio-item--checked', off && 'animal-radio-item--disabled'].filter(Boolean).join(' ')} tabIndex={sel ? 0 : -1}>
+            <input type="radio" checked={sel} disabled={off} onChange={() => onChange && onChange(opt.value)} style={{ position: 'absolute', opacity: 0, width: 0, height: 0 }} />
+            <span className="animal-radio-circle">{sel && <svg viewBox="0 0 16 16" width={svgSize[size]} height={svgSize[size]} fill="none" stroke="#fff" strokeWidth="2.5"><path d={paths[size]} /></svg>}</span>
+            <span className="animal-radio-label">{opt.label}</span>
+          </label>
+        );
+      })}
+    </div>
+  );
+}
+
+function Card({ pattern, color, type, children, className = '', static: isStatic, onClick, ...rest }) {
+  const cls = ['animal-card', pattern && pattern !== 'none' && `animal-card--pattern-${pattern}`, !pattern && color && `animal-card--color-${color}`, type === 'dashed' && 'animal-card--dashed', isStatic !== false && 'animal-card--static', className].filter(Boolean).join(' ');
+  return <div className={cls} onClick={onClick} {...rest}>{children}</div>;
+}
+
+const TITLE_SIZE_MAP = { small: 14, middle: 20, large: 34 };
+
+function TitleRibbon({ children, fontSize, color }) {
+  const ribbonCls = ['animal-ribbon', color && color !== 'default' && `animal-ribbon-color-${color}`].filter(Boolean).join(' ');
+  return (
+    <span className={ribbonCls} style={{ fontSize: `${fontSize}px` }}>
+      <span className="animal-ribbon-back animal-ribbon-back-left" aria-hidden="true" />
+      <span className="animal-ribbon-back animal-ribbon-back-right" aria-hidden="true" />
+      <span className="animal-ribbon-fold animal-ribbon-fold-left" aria-hidden="true" />
+      <span className="animal-ribbon-fold animal-ribbon-fold-right" aria-hidden="true" />
+      <span className="animal-ribbon-front" aria-hidden="true" />
+      <span className="animal-ribbon-text">{children}</span>
+    </span>
+  );
+}
+
+function Title({ color = 'default', size = 'middle', children, className = '', style }) {
+  return (
+    <span className={`animal-title ${className}`} style={style}>
+      <TitleRibbon fontSize={TITLE_SIZE_MAP[size]} color={color}>{children}</TitleRibbon>
+    </span>
+  );
+}
+
+function Collapse({ items = [], defaultActiveKey, accordion, className = '' }) {
+  const [openKeys, setOpenKeys] = useState(defaultActiveKey ? (Array.isArray(defaultActiveKey) ? defaultActiveKey : [defaultActiveKey]) : []);
+  const toggle = (key) => {
+    setOpenKeys((prev) => {
+      const has = prev.includes(key);
+      if (accordion) return has ? [] : [key];
+      return has ? prev.filter((k) => k !== key) : [...prev, key];
+    });
+  };
+  return (
+    <div className={className}>
+      {items.map((item) => {
+        const open = openKeys.includes(item.key);
+        return (
+          <div key={item.key} className={`animal-collapse ${open ? 'animal-collapse--open' : ''}`}>
+            <div className="animal-collapse-header" onClick={() => toggle(item.key)}>
+              <span className="animal-collapse-icon">{open ? '−' : '+'}</span>
+              <span>{item.label}</span>
+            </div>
+            <div className="animal-collapse-body"><div className="animal-collapse-inner"><div className="animal-collapse-content">{item.children}</div></div></div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function Tabs({ items = [], defaultActiveKey, className = '' }) {
+  const [active, setActive] = useState(defaultActiveKey || items[0]?.key);
+  const current = items.find((i) => i.key === active);
+  return (
+    <div className={`animal-tabs ${className}`}>
+      <div className="animal-tabs-list">{items.map((item) => (
+        <button key={item.key} type="button" className={`animal-tab ${active === item.key ? 'animal-tab--active' : ''}`} onClick={() => setActive(item.key)}>
+          {item.label}
+          {active === item.key && <span className="animal-tab-leaf"><Icon name="leaf" size={18} color="#FFF9E3" /></span>}
+        </button>
+      ))}</div>
+      <div className="animal-tabs-panel">{current?.children}</div>
+    </div>
+  );
+}
+
+function Modal({ open, onClose, title, children, onConfirm, confirmText = '确定', cancelText = '取消', showCancel = true }) {
+  if (!open) return null;
+  return (
+    <div className="animal-modal-backdrop" onClick={onClose}>
+      <div className="animal-modal" onClick={(e) => e.stopPropagation()}>
+        {title && <div className="animal-modal-title">{title}</div>}
+        <div className="animal-modal-body">{children}</div>
+        <div className="animal-modal-footer">
+          {showCancel && <Button type="default" onClick={onClose}>{cancelText}</Button>}
+          <button type="button" className="animal-modal-confirm" onClick={() => { onConfirm && onConfirm(); onClose && onClose(); }}>{confirmText}</button>
+        </div>
       </div>
-      <textarea id="s3" placeholder="填写需要协助的工作" disabled></textarea>
     </div>
+  );
+}
 
-    <div class="card">
-      <div class="card-title">四、日常工作汇报</div>
-      <div class="list-items" id="s4-list"></div>
-      <button class="btn btn-add" id="s4-add">+ 添加条目</button>
-    </div>
-
-    <div class="card">
-      <div class="preview-header">
-        <div class="card-title">预览</div>
-        <button class="btn btn-copy" id="copyBtn">复制到剪贴板</button>
+function Select({ options = [], value, onChange, placeholder = '请选择', disabled, className = '' }) {
+  const [open, setOpen] = useState(false);
+  const [sel, setSel] = useState(value);
+  const current = options.find((o) => o.value === (value !== undefined ? value : sel));
+  const pick = (v) => { if (value === undefined) setSel(v); onChange && onChange(v); setOpen(false); };
+  useEffect(() => { const close = () => setOpen(false); if (open) document.addEventListener('click', close); return () => document.removeEventListener('click', close); }, [open]);
+  return (
+    <div className={`animal-select ${open ? 'animal-select--open' : ''} ${className}`} onClick={(e) => e.stopPropagation()}>
+      <div className="animal-select-trigger" onClick={() => !disabled && setOpen(!open)}>
+        <span className={current ? '' : 'animal-select-placeholder'}>{current ? current.label : placeholder}</span>
+        <span className="animal-select-arrow"><Icon name="arrow-down" size={14} color="currentColor" /></span>
       </div>
-      <div id="preview"></div>
+      {open && <div className="animal-select-dropdown">{options.map((o) => (
+        <div key={o.value} className={`animal-select-option ${current?.value === o.value ? 'animal-select-option--selected' : ''}`} onClick={() => pick(o.value)}>{o.label}</div>
+      ))}</div>}
     </div>
-  </div>
+  );
+}
 
-  <script>
-    const STORAGE_KEY = 'work-report-name';
+function Tooltip({ title, children, variant = 'default', placement = 'top', className = '' }) {
+  const [visible, setVisible] = useState(false);
+  const cls = ['animal-tooltip', `animal-tooltip--${variant}`, `animal-tooltip--${placement}`, visible && 'animal-tooltip--visible'].filter(Boolean).join(' ');
+  return (
+    <span className={`animal-tooltip-wrap ${className}`} onMouseEnter={() => setVisible(true)} onMouseLeave={() => setVisible(false)}>
+      {children}
+      <span className={cls} role="tooltip">{title}{variant === 'default' ? <span className="animal-tooltip-arrow--default" /> : <span className="animal-tooltip-dot" />}</span>
+    </span>
+  );
+}
 
-    function formatDate(d) {
-      return `${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日`;
+function Loading({ spinning, children, className = '' }) {
+  return (
+    <div className={className} style={{ position: 'relative' }}>
+      {children}
+      {spinning && (
+        <div className="animal-loading">
+          <div className="animal-loading-mask" style={{ '--mask-r': '120%' }} />
+          <svg className="animal-loading-spinner" width="48" height="48" viewBox="0 0 50 50"><circle cx="25" cy="25" r="20" fill="none" stroke="currentColor" strokeWidth="4" /></svg>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function Table({ columns = [], dataSource = [], striped, loading, emptyText = '暂无数据', className = '' }) {
+  return (
+    <div className={`animal-table-wrap ${className}`}>
+      {loading && <div className="animal-table-overlay"><svg className="animal-loading-spinner" width="36" height="36" viewBox="0 0 50 50"><circle cx="25" cy="25" r="20" fill="none" stroke="#19c8b9" strokeWidth="4" /></svg></div>}
+      {!dataSource.length ? <div className="animal-table-empty">{emptyText}</div> : (
+        <table className="animal-table"><thead><tr>{columns.map((c) => <th key={c.key}>{c.title}</th>)}</tr></thead><tbody>
+          {dataSource.map((row, ri) => (
+            <tr key={row.key || ri} className={striped && ri % 2 ? 'striped' : ''}>{columns.map((c) => <td key={c.key}>{c.render ? c.render(row[c.dataIndex], row) : row[c.dataIndex]}</td>)}</tr>
+          ))}
+        </tbody></table>
+      )}
+    </div>
+  );
+}
+
+function Time({ className = '' }) {
+  const [now, setNow] = useState(new Date());
+  useEffect(() => { const t = setInterval(() => setNow(new Date()), 1000); return () => clearInterval(t); }, []);
+  const weekdays = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
+  const h = String(now.getHours()).padStart(2, '0');
+  const m = String(now.getMinutes()).padStart(2, '0');
+  const s = String(now.getSeconds()).padStart(2, '0');
+  return (
+    <div className={`animal-time ${className}`}>
+      <div className="animal-time-date"><div className="animal-time-weekday">{weekdays[now.getDay()]}</div><div className="animal-time-day">{now.getMonth() + 1}/{now.getDate()}</div></div>
+      <div className="animal-time-clock">{h}<span className="animal-time-colon--blink">:</span>{m}<span className="animal-time-colon--blink">:</span>{s}</div>
+    </div>
+  );
+}
+
+function Divider({ type = 'line-brown', className = '' }) {
+  return <div className={`animal-divider animal-divider--${type} ${className}`} role="separator" />;
+}
+
+function Footer({ type = 'tree', className = '' }) {
+  return <div className={`animal-footer animal-footer--${type} ${className}`} />;
+}
+
+function Phone({ className = '' }) {
+  const apps = [{ c: '#B77DEE' }, { c: '#889DF0' }, { c: '#F7CD67' }, { c: '#E59266' }, { c: '#F8A6B2' }, { c: '#82D5BB' }, { c: '#8AC68A' }, { c: '#FC736D' }, { c: '#D1DA49' }];
+  return (
+    <div className={className} style={{ width: 220, margin: '0 auto', borderRadius: 56, background: '#F8F4E8', padding: '20px 14px 24px', overflow: 'hidden' }}>
+      <div style={{ textAlign: 'center', fontSize: 11, fontWeight: 800, color: '#DDDBCC', letterSpacing: 2, marginBottom: 8 }}>12:00</div>
+      <div style={{ textAlign: 'center', fontSize: 16, fontWeight: 800, color: '#725C4E', letterSpacing: 1, marginBottom: 16 }}>Welcome!</div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 10 }}>{apps.map((a, i) => <div key={i} style={{ width: 48, height: 48, borderRadius: 18, background: a.c, margin: '0 auto' }} />)}</div>
+    </div>
+  );
+}
+
+function Cursor({ children, forceAll = true, className = '' }) {
+  return <div className={`animal-cursor ${className}`}>{children}</div>;
+}
+
+function Typewriter({ children, speed = 90, trigger = 0 }) {
+  const [count, setCount] = useState(0);
+  const text = useMemo(() => {
+    const walk = (node) => {
+      if (typeof node === 'string' || typeof node === 'number') return String(node);
+      if (Array.isArray(node)) return node.map(walk).join('');
+      if (isValidElement(node)) return walk(node.props.children);
+      return '';
+    };
+    return walk(children);
+  }, [children, trigger]);
+  useEffect(() => { setCount(0); if (!text) return; let i = 0; const t = setInterval(() => { i++; setCount(i); if (i >= text.length) clearInterval(t); }, speed); return () => clearInterval(t); }, [text, speed, trigger]);
+  const render = (node, budget) => {
+    if (budget.remaining <= 0) return null;
+    if (typeof node === 'string' || typeof node === 'number') { const s = String(node).slice(0, budget.remaining); budget.remaining -= s.length; return s; }
+    if (Array.isArray(node)) return node.map((n, i) => <Fragment key={i}>{render(n, budget)}</Fragment>).filter(Boolean);
+    if (isValidElement(node)) { const inner = render(node.props.children, budget); if (!inner && inner !== 0) return null; return cloneElement(node, { ...node.props, children: inner }); }
+    return null;
+  };
+  return <>{render(children, { remaining: count })}</>;
+}
+
+function CodeBlock({ code, className = '' }) {
+  const html = (code || '').replace(/(&|<|>)/g, (m) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[m]))
+    .replace(/(\/\/.*$)/gm, '<span class="cm">$1</span>')
+    .replace(/('[^']*'|"[^"]*")/g, '<span class="st">$1</span>')
+    .replace(/\b(function|const|let|return|import|export|from)\b/g, '<span class="kw">$1</span>');
+  return <pre className={`animal-codeblock ${className}`} dangerouslySetInnerHTML={{ __html: html }} />;
+}
+
+function WeddingInvitation({ title, children, className = '' }) {
+  return (
+    <div className={`animal-wedding ${className}`}>
+      {title && <><div className="animal-wedding-title">{title}</div><div className="animal-wedding-divider" /></>}
+      <div style={{ position: 'relative', zIndex: 1 }}>{children}</div>
+      <div className="animal-wedding-lottery" />
+    </div>
+  );
+}
+
+function WeddingInvitationExportButton({ onExport, children = '导出 PNG', className = '' }) {
+  return <Button type="primary" className={className} onClick={() => onExport ? onExport() : alert('导出功能需联网环境')}>{children}</Button>;
+}
+
+const STORAGE_KEY = 'work-report-name';
+const STORAGE_KEY_S1 = 'work-report-section1';
+const STORAGE_KEY_S2 = 'work-report-section2';
+const STORAGE_KEY_S3 = 'work-report-section3';
+const STORAGE_KEY_S4 = 'work-report-section4';
+
+function loadCachedText(key, fallback) {
+  try {
+    const raw = localStorage.getItem(key);
+    if (raw != null) return raw;
+  } catch (_) {}
+  return fallback;
+}
+
+function loadCachedList(key, fallback) {
+  try {
+    const raw = localStorage.getItem(key);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) return parsed.map(String);
     }
+  } catch (_) {}
+  return fallback;
+}
 
-    function buildReport() {
-      const name = document.getElementById('name').value.trim();
-      const s1None = document.getElementById('s1-none').checked;
-      const s1 = document.getElementById('s1').value.trim();
-      const s3None = document.getElementById('s3-none').checked;
-      const s3 = document.getElementById('s3').value.trim();
+function formatDateISO(iso) {
+  const [y, m, d] = iso.split('-').map(Number);
+  return `${y}年${m}月${d}日`;
+}
 
-      const s2Items = [...document.querySelectorAll('#s2-list input')]
-        .map(el => el.value.trim())
-        .filter(v => v);
+function todayISO() {
+  const d = new Date();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${d.getFullYear()}-${m}-${day}`;
+}
 
-      const s4Items = [...document.querySelectorAll('#s4-list input')]
-        .map(el => el.value.trim())
-        .filter(v => v);
+function buildReport({ dateISO, name, section1, section2Items, section3, section4Items }) {
+  const displayName = (name || '').trim() || '姓名';
+  const s1 = (section1 || '').trim() || '暂无';
+  const s3 = (section3 || '').trim() || '暂无';
+  const lines = [formatDateISO(dateISO), `${displayName}工作汇报：`, `一、领导安排工作：${s1}`];
+  if (!section2Items.length) lines.push('二、重点工作事项：暂无');
+  else { lines.push('二、重点工作事项：'); section2Items.forEach((item) => lines.push(`   ${item}`)); }
+  lines.push(`三、需要协助的工作：${s3}`);
+  if (!section4Items.length) lines.push('四、日常工作汇报: 暂无');
+  else { lines.push('四、日常工作汇报:'); section4Items.forEach((item, i) => lines.push(`   ${i + 1}. ${item}`)); }
+  return lines.join('\n');
+}
 
-      const lines = [
-        formatDate(new Date()),
-        `${name || '（请填写姓名）'}工作汇报：`,
-        `一、领导安排工作：${s1None || !s1 ? '暂无' : s1}`,
-      ];
+const PREVIEW_PLACEHOLDER = '填写左侧内容后，此处将实时呈现排版好的文本';
 
-      if (s2Items.length === 0) {
-        lines.push('二、重点工作事项：暂无');
-      } else {
-        lines.push('二、重点工作事项：');
-        s2Items.forEach(item => lines.push(`   ${item}`));
-      }
+function App() {
+  const [reportDate, setReportDate] = useState(todayISO);
+  const [name, setName] = useState(() => localStorage.getItem(STORAGE_KEY) || '');
+  const [s1, setS1] = useState(() => loadCachedText(STORAGE_KEY_S1, '暂无'));
+  const [s2, setS2] = useState(() => loadCachedList(STORAGE_KEY_S2, []));
+  const [s3, setS3] = useState(() => loadCachedText(STORAGE_KEY_S3, '暂无'));
+  const [s4, setS4] = useState(() => loadCachedList(STORAGE_KEY_S4, ['', '', '']));
+  const [copied, setCopied] = useState(false);
 
-      lines.push(`三、需要协助的工作：${s3None || !s3 ? '暂无' : s3}`);
+  useEffect(() => { localStorage.setItem(STORAGE_KEY, name); }, [name]);
+  useEffect(() => { localStorage.setItem(STORAGE_KEY_S1, s1); }, [s1]);
+  useEffect(() => { localStorage.setItem(STORAGE_KEY_S2, JSON.stringify(s2)); }, [s2]);
+  useEffect(() => { localStorage.setItem(STORAGE_KEY_S3, s3); }, [s3]);
+  useEffect(() => { localStorage.setItem(STORAGE_KEY_S4, JSON.stringify(s4)); }, [s4]);
 
-      if (s4Items.length === 0) {
-        lines.push('四、日常工作汇报: 暂无');
-      } else {
-        lines.push('四、日常工作汇报:');
-        s4Items.forEach((item, i) => lines.push(`   ${i + 1}. ${item}`));
-      }
+  const preview = buildReport({
+    dateISO: reportDate,
+    name,
+    section1: s1,
+    section2Items: s2.map((x) => x.trim()).filter(Boolean),
+    section3: s3,
+    section4Items: s4.map((x) => x.trim()).filter(Boolean),
+  });
 
-      return lines.join('\n');
-    }
+  const addS2 = () => setS2([...s2, '']);
+  const updS2 = (i, v) => { const n = [...s2]; n[i] = v; setS2(n); };
 
-    function updatePreview() {
-      document.getElementById('preview').textContent = buildReport();
-    }
+  const addS4 = () => setS4([...s4, '']);
+  const updS4 = (i, v) => { const n = [...s4]; n[i] = v; setS4(n); };
 
-    function createListItem(listId, placeholder) {
-      const row = document.createElement('div');
-      row.className = 'list-item';
+  const copy = async () => {
+    try { await navigator.clipboard.writeText(preview); }
+    catch { const ta = document.createElement('textarea'); ta.value = preview; ta.style.position = 'fixed'; ta.style.left = '-9999px'; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); }
+    setCopied(true); setTimeout(() => setCopied(false), 2000);
+  };
 
-      const input = document.createElement('input');
-      input.type = 'text';
-      input.placeholder = placeholder;
-      input.addEventListener('input', () => {
-        updatePreview();
-        saveName();
-      });
+  return (
+    <Cursor>
+      <div className="page">
+        <div className="page-top">
+          <Title color="warm-peach-pink" size="large">又要写汇报了</Title>
+        </div>
 
-      const removeBtn = document.createElement('button');
-      removeBtn.className = 'btn btn-remove';
-      removeBtn.textContent = '删除';
-      removeBtn.addEventListener('click', () => {
-        row.remove();
-        updatePreview();
-      });
+        <div className="page-main">
+          <div className="input-column">
+            <div className="basic-row">
+              <DateInput size="middle" value={reportDate} onChange={(e) => setReportDate(e.target.value)} />
+              <Input size="middle" placeholder="请输入姓名" value={name} onChange={(e) => setName(e.target.value)} allowClear />
+            </div>
 
-      row.appendChild(input);
-      row.appendChild(removeBtn);
-      document.getElementById(listId).appendChild(row);
-      input.focus();
-      updatePreview();
-    }
+            <div className="section-block">
+              <Card pattern="app-green" className="section-card-scroll">
+                <div className="section-label">四、日常工作汇报</div>
+                <div className={`item-list s4-list${s4.length > 4 ? ' scrollable-list scrollable-list--active' : ''}`}>
+                  {s4.map((item, i) => (
+                    <div className="list-row" key={i}>
+                      <Input size="middle" placeholder={`工作内容 ${i + 1}`} value={item} onChange={(e) => updS4(i, e.target.value)} />
+                      <Button type="text" size="small" onClick={() => setS4(s4.filter((_, j) => j !== i))} aria-label="删除"><ItemIcon item={490} size={28} /></Button>
+                    </div>
+                  ))}
+                </div>
+                <div className="list-actions"><Button type="dashed" size="middle" onClick={addS4}>+ 添加工作</Button></div>
+              </Card>
+            </div>
 
-    function setupNoneToggle(checkboxId, textareaId) {
-      const checkbox = document.getElementById(checkboxId);
-      const textarea = document.getElementById(textareaId);
+            <div className="section-block">
+              <Card pattern="app-yellow" className="section-card-scroll">
+                <div className="section-label">二、重点工作事项</div>
+                <div className="item-list scrollable-list s2-grid">
+                  {s2.length === 0 ? (
+                    <div className="item-list-empty s2-grid-empty">暂无项目，请点击下方添加</div>
+                  ) : s2.map((item, i) => (
+                    <div className="s2-grid-slot" key={i}>
+                      <Input size="middle" placeholder={`项目 ${i + 1}`} value={item} onChange={(e) => updS2(i, e.target.value)} />
+                      <Button type="text" size="small" onClick={() => setS2(s2.filter((_, j) => j !== i))} aria-label="删除"><ItemIcon item={490} size={28} /></Button>
+                    </div>
+                  ))}
+                </div>
+                <div className="list-actions"><Button type="dashed" size="middle" onClick={addS2}>+ 添加项目</Button></div>
+              </Card>
+            </div>
 
-      checkbox.addEventListener('change', () => {
-        textarea.disabled = checkbox.checked;
-        if (checkbox.checked) textarea.value = '';
-        updatePreview();
-      });
-    }
+            <div className="section-block">
+              <Card pattern="default">
+                <div className="section-label">一、领导安排工作</div>
+                <Input size="middle" value={s1} onChange={(e) => setS1(e.target.value)} placeholder="暂无" />
+              </Card>
+            </div>
 
-    function saveName() {
-      const name = document.getElementById('name').value.trim();
-      if (name) localStorage.setItem(STORAGE_KEY, name);
-    }
+            <div className="section-block">
+              <Card pattern="default">
+                <div className="section-label">三、需要协助的工作</div>
+                <Input size="middle" value={s3} onChange={(e) => setS3(e.target.value)} placeholder="暂无" />
+              </Card>
+            </div>
 
-    function init() {
-      const savedName = localStorage.getItem(STORAGE_KEY);
-      if (savedName) document.getElementById('name').value = savedName;
+          </div>
 
-      document.getElementById('dateHint').textContent =
-        `今天日期：${formatDate(new Date())}（自动生成）`;
+          <div className="output-column">
+            <div className="preview-box">
+              <div className="preview-inner">
+                <div className="preview-time">
+                  <Time />
+                </div>
+                <textarea
+                  className="preview-area"
+                  readOnly
+                  value={preview}
+                  placeholder={PREVIEW_PLACEHOLDER}
+                />
+              </div>
+            </div>
+            <div className="output-actions">
+              <Tooltip title="复制后粘贴到微信群即可" placement="top">
+                <Button type="primary" size="large" block onClick={copy}><Icon name="copy" size={16} color="#794f27" /> 一键复制</Button>
+              </Tooltip>
+              <span className={`copy-tip ${copied ? 'show' : ''}`}>已复制到剪贴板</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </Cursor>
+  );
+}
 
-      setupNoneToggle('s1-none', 's1');
-      setupNoneToggle('s3-none', 's3');
-
-      document.getElementById('name').addEventListener('input', () => {
-        updatePreview();
-        saveName();
-      });
-
-      document.getElementById('s1').addEventListener('input', updatePreview);
-      document.getElementById('s3').addEventListener('input', updatePreview);
-
-      document.getElementById('s2-add').addEventListener('click', () => {
-        createListItem('s2-list', '项目名称');
-      });
-
-      document.getElementById('s4-add').addEventListener('click', () => {
-        createListItem('s4-list', '工作内容');
-      });
-
-      document.getElementById('copyBtn').addEventListener('click', async () => {
-        const text = buildReport();
-        const btn = document.getElementById('copyBtn');
-
-        try {
-          await navigator.clipboard.writeText(text);
-          btn.textContent = '已复制';
-          btn.classList.add('copied');
-          setTimeout(() => {
-            btn.textContent = '复制到剪贴板';
-            btn.classList.remove('copied');
-          }, 2000);
-        } catch {
-          const ta = document.createElement('textarea');
-          ta.value = text;
-          ta.style.position = 'fixed';
-          ta.style.left = '-9999px';
-          document.body.appendChild(ta);
-          ta.select();
-          document.execCommand('copy');
-          document.body.removeChild(ta);
-          btn.textContent = '已复制';
-          btn.classList.add('copied');
-          setTimeout(() => {
-            btn.textContent = '复制到剪贴板';
-            btn.classList.remove('copied');
-          }, 2000);
-        }
-      });
-
-      updatePreview();
-    }
-
-    init();
-  </script>
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(<App />);
+</script>
 </body>
 </html>
