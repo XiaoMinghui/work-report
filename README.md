@@ -2,12 +2,34 @@
 
 单页静态工具：填写四个板块内容，按公司格式生成汇报文本，一键复制到微信群。
 
-## Gitee Pages 部署（国内访问）
+## 外网部署说明
+
+> **重要**：Gitee Pages 已于 2024 年 5 月 1 日正式下线，仓库「服务」菜单里不会再出现该选项。代码仍可托管在 Gitee，但静态网站需改用其他平台发布。
+
+### 推荐方案：Cloudflare Pages
+
+GitHub 账号：`XiaoMinghui`（2433216985@qq.com）
+
+详细步骤见 **[DEPLOY.md](DEPLOY.md)**，快速推送：
+
+```powershell
+.\deploy-cloudflare.ps1
+```
+
+部署后访问：`https://work-report.pages.dev`
+
+其他备选：[Netlify Drop](https://app.netlify.com/drop)（拖文件即用）、[Vercel](https://vercel.com)
+
+下面保留 Gitee 代码托管说明；Gitee Pages 已下线，仅作存档。
+
+---
+
+## ~~Gitee Pages 部署~~（已下线，不可用）
 
 ### 前置条件
 
 1. 注册 [Gitee](https://gitee.com) 账号
-2. 完成**实名认证**（未认证无法开通 Pages）
+2. ~~完成**实名认证**~~
 3. 本机已安装 Git
 
 ### 第一步：在 Gitee 创建仓库
