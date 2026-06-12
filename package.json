@@ -1,0 +1,11 @@
+{
+  "name": "work-report",
+  "private": true,
+  "scripts": {
+    "deploy": "wrangler deploy",
+    "kv:create": "wrangler kv namespace create SYNC_KV"
+  },
+  "devDependencies": {
+    "wrangler": "^4.0.0"
+  }
+}

@@ -83,6 +83,14 @@ html,#root{min-height:100%}
 .section-label{font-size:15.6px;font-weight:600;color:var(--text);letter-spacing:0.02em}
 .copy-tip{display:inline-block;text-align:center;font-size:14.4px;font-weight:700;color:#794f27;background:#fff9e3;border:2px solid #794f27;border-radius:12px;padding:8px 16px;margin:10px auto 0;box-shadow:0 3px 10px rgba(61,52,40,0.18);opacity:0;transform:translateY(4px);transition:opacity var(--d-base) var(--ease),transform var(--d-base) var(--ease)}
 .copy-tip.show{opacity:1;transform:translateY(0)}
+.sync-bar{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:10px 14px;background:rgba(255,249,227,0.92);border:2px solid #c4b89e;border-radius:14px}
+.sync-bar--active{border-color:#19c8b9;background:rgba(230,249,246,0.95)}
+.sync-bar-label{font-size:14px;font-weight:700;color:#794f27;white-space:nowrap}
+.sync-bar .animal-input-affix--middle{min-height:40px;padding:0 14px;font-size:14px;flex:1;min-width:120px}
+.sync-status{font-size:13px;font-weight:600;color:#9f927d}
+.sync-status--ok{color:#6fba2c}
+.sync-status--warn{color:#dba90e}
+.sync-status--err{color:#e05a5a}
 .page .animal-input-label{font-size:16.8px}
 .page .animal-input-affix--middle{min-height:46px;padding:0 20px;font-size:15.6px}
 .page .animal-input-affix--textarea{min-height:86px;padding:10px 18px}
@@ -455,7 +463,7 @@ function DateInput({ value, onChange, size = 'middle', className = '' }) {
   );
 }
 
-function Input({ size = 'middle', value, defaultValue, onChange, placeholder, disabled, readOnly, shadow = false, status, prefix, suffix, allowClear, label, rows, type = 'text', className = '' }) {
+function Input({ size = 'middle', value, defaultValue, onChange, onPressEnter, placeholder, disabled, readOnly, shadow = false, status, prefix, suffix, allowClear, label, rows, type = 'text', className = '' }) {
   const [inner, setInner] = useState(defaultValue || '');
   const val = value !== undefined ? value : inner;
   const setVal = (v) => { if (value === undefined) setInner(v); onChange && onChange({ target: { value: v } }); };
@@ -463,7 +471,7 @@ function Input({ size = 'middle', value, defaultValue, onChange, placeholder, di
   const affixCls = ['animal-input-affix', `animal-input-affix--${size}`, type === 'date' && 'animal-input-affix--date', shadow && 'animal-input-affix--shadow', status === 'error' && 'animal-input-affix--error', status === 'warning' && 'animal-input-affix--warning', disabled && 'animal-input-affix--disabled', isTextarea && 'animal-input-affix--textarea'].filter(Boolean).join(' ');
   const field = isTextarea
     ? <textarea className="animal-input-field animal-input-field--textarea" rows={rows} value={val} placeholder={placeholder} disabled={disabled} readOnly={readOnly} onChange={(e) => setVal(e.target.value)} />
-    : <input className="animal-input-field" type={type} value={val} placeholder={placeholder} disabled={disabled} readOnly={readOnly} onChange={(e) => setVal(e.target.value)} />;
+    : <input className="animal-input-field" type={type} value={val} placeholder={placeholder} disabled={disabled} readOnly={readOnly} onChange={(e) => setVal(e.target.value)} onKeyDown={(e) => onPressEnter && e.key === 'Enter' && onPressEnter(e)} />;
   return (
     <div className={`animal-input-wrap ${className}`}>
       {label && <span className="animal-input-label">{label}</span>}
@@ -754,6 +762,29 @@ const STORAGE_KEY_S1 = 'work-report-section1';
 const STORAGE_KEY_S2 = 'work-report-section2';
 const STORAGE_KEY_S3 = 'work-report-section3';
 const STORAGE_KEY_S4 = 'work-report-section4';
+const STORAGE_KEY_PIN = 'work-report-sync-pin';
+const STORAGE_KEY_UPDATED = 'work-report-updated-at';
+const SYNC_API = '/api/sync';
+
+function validateSyncPin(pin) {
+  return /^[a-zA-Z0-9]{4,32}$/.test(pin);
+}
+
+async function apiFetchSync(pin, options = {}) {
+  const res = await fetch(SYNC_API, {
+    ...options,
+    headers: { ...(options.headers || {}), 'X-Sync-Pin': pin },
+  });
+  const json = await res.json().catch(() => ({}));
+  return { res, json };
+}
+
+function buildSyncRecord(reportDate, name, s1, s2, s3, s4) {
+  return {
+    data: { reportDate, name, s1, s2, s3, s4 },
+    updatedAt: new Date().toISOString(),
+  };
+}
 
 function loadCachedText(key, fallback) {
   try {
@@ -809,12 +840,120 @@ function App() {
   const [s3, setS3] = useState(() => loadCachedText(STORAGE_KEY_S3, '暂无'));
   const [s4, setS4] = useState(() => loadCachedList(STORAGE_KEY_S4, ['', '', '']));
   const [copied, setCopied] = useState(false);
+  const [syncPin, setSyncPin] = useState(() => localStorage.getItem(STORAGE_KEY_PIN) || '');
+  const [pinInput, setPinInput] = useState('');
+  const [syncStatus, setSyncStatus] = useState('idle');
+  const syncReady = useRef(false);
+  const pushTimer = useRef(null);
+
+  const applySyncData = useCallback((data) => {
+    if (!data) return;
+    if (data.reportDate) setReportDate(data.reportDate);
+    if (data.name != null) setName(data.name);
+    if (data.s1 != null) setS1(data.s1);
+    if (Array.isArray(data.s2)) setS2(data.s2);
+    if (data.s3 != null) setS3(data.s3);
+    if (Array.isArray(data.s4)) setS4(data.s4);
+  }, []);
+
+  const pullFromCloud = useCallback(async (pin) => {
+    const { res, json } = await apiFetchSync(pin);
+    if (!res.ok) throw new Error(json.error || 'pull_failed');
+    const localUpdated = localStorage.getItem(STORAGE_KEY_UPDATED) || '';
+    if (json.data && (!localUpdated || !json.updatedAt || json.updatedAt >= localUpdated)) {
+      applySyncData(json.data);
+      if (json.updatedAt) localStorage.setItem(STORAGE_KEY_UPDATED, json.updatedAt);
+    }
+  }, [applySyncData]);
+
+  const pushToCloud = useCallback(async (pin) => {
+    const record = buildSyncRecord(reportDate, name, s1, s2, s3, s4);
+    const { res, json } = await apiFetchSync(pin, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(record),
+    });
+    if (res.status === 409) {
+      applySyncData(json.data);
+      if (json.updatedAt) localStorage.setItem(STORAGE_KEY_UPDATED, json.updatedAt);
+      setSyncStatus('conflict');
+      return;
+    }
+    if (!res.ok) throw new Error(json.error || 'push_failed');
+    localStorage.setItem(STORAGE_KEY_UPDATED, record.updatedAt);
+    setSyncStatus('saved');
+  }, [reportDate, name, s1, s2, s3, s4, applySyncData]);
 
   useEffect(() => { localStorage.setItem(STORAGE_KEY, name); }, [name]);
   useEffect(() => { localStorage.setItem(STORAGE_KEY_S1, s1); }, [s1]);
   useEffect(() => { localStorage.setItem(STORAGE_KEY_S2, JSON.stringify(s2)); }, [s2]);
   useEffect(() => { localStorage.setItem(STORAGE_KEY_S3, s3); }, [s3]);
   useEffect(() => { localStorage.setItem(STORAGE_KEY_S4, JSON.stringify(s4)); }, [s4]);
+
+  useEffect(() => {
+    if (!syncPin) { syncReady.current = false; return; }
+    let cancelled = false;
+    (async () => {
+      setSyncStatus('syncing');
+      try {
+        await pullFromCloud(syncPin);
+        if (!cancelled) { syncReady.current = true; setSyncStatus('idle'); }
+      } catch {
+        if (!cancelled) { syncReady.current = true; setSyncStatus('error'); }
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [syncPin, pullFromCloud]);
+
+  useEffect(() => {
+    if (!syncPin || !syncReady.current) return;
+    clearTimeout(pushTimer.current);
+    setSyncStatus('syncing');
+    pushTimer.current = setTimeout(async () => {
+      try {
+        await pushToCloud(syncPin);
+      } catch {
+        setSyncStatus('error');
+      }
+    }, 1200);
+    return () => clearTimeout(pushTimer.current);
+  }, [syncPin, reportDate, name, s1, s2, s3, s4, pushToCloud]);
+
+  const enableSync = () => {
+    const pin = pinInput.trim();
+    if (!validateSyncPin(pin)) {
+      setSyncStatus('invalid');
+      return;
+    }
+    localStorage.setItem(STORAGE_KEY_PIN, pin);
+    setSyncPin(pin);
+    setPinInput('');
+  };
+
+  const disableSync = () => {
+    localStorage.removeItem(STORAGE_KEY_PIN);
+    setSyncPin('');
+    setPinInput('');
+    setSyncStatus('idle');
+    syncReady.current = false;
+  };
+
+  const syncStatusText = {
+    idle: syncPin ? '已连接云端' : '',
+    syncing: '同步中…',
+    saved: '已保存到云端',
+    error: '同步失败，请检查网络',
+    conflict: '已使用云端较新版本',
+    invalid: '同步码需 4-32 位字母或数字',
+  }[syncStatus] || '';
+
+  const syncStatusClass = syncStatus === 'saved' || syncStatus === 'idle'
+    ? 'sync-status--ok'
+    : syncStatus === 'conflict' || syncStatus === 'invalid'
+      ? 'sync-status--warn'
+      : syncStatus === 'error'
+        ? 'sync-status--err'
+        : '';
 
   const preview = buildReport({
     dateISO: reportDate,
@@ -849,6 +988,28 @@ function App() {
             <div className="basic-row">
               <DateInput size="middle" value={reportDate} onChange={(e) => setReportDate(e.target.value)} />
               <Input size="middle" placeholder="请输入姓名" value={name} onChange={(e) => setName(e.target.value)} allowClear />
+            </div>
+
+            <div className={`sync-bar${syncPin ? ' sync-bar--active' : ''}`}>
+              <span className="sync-bar-label">云端同步</span>
+              {syncPin ? (
+                <>
+                  <span className={`sync-status ${syncStatusClass}`}>{syncStatusText || '已启用'}</span>
+                  <Button type="default" size="small" onClick={disableSync}>退出同步</Button>
+                </>
+              ) : (
+                <>
+                  <Input
+                    size="middle"
+                    type="password"
+                    placeholder="设置 4-32 位同步码"
+                    value={pinInput}
+                    onChange={(e) => setPinInput(e.target.value)}
+                    onPressEnter={enableSync}
+                  />
+                  <Button type="primary" size="small" onClick={enableSync}>启用同步</Button>
+                </>
+              )}
             </div>
 
             <div className="section-block">
