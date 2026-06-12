@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="description" content="每日工作汇报生成器，填写后一键复制发到群里">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="工作汇报">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <title>工作汇报生成器</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif;
+      background: #f5f6f8;
+      color: #1a1a2e;
+      line-height: 1.6;
+      padding: 24px 16px 48px;
+    }
+
+    .container {
+      max-width: 720px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      font-size: 1.5rem;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .subtitle {
+      color: #666;
+      font-size: 0.875rem;
+      margin-bottom: 24px;
+    }
+
+    .card {
+      background: #fff;
+      border-radius: 10px;
+      padding: 20px;
+      margin-bottom: 16px;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+    }
+
+    .card-title {
+      font-size: 0.95rem;
+      font-weight: 600;
+      margin-bottom: 12px;
+      color: #333;
+    }
+
+    label {
+      display: block;
+      font-size: 0.875rem;
+      color: #555;
+      margin-bottom: 6px;
+    }
+
+    input[type="text"],
+    textarea {
+      width: 100%;
+      padding: 8px 12px;
+      border: 1px solid #d0d5dd;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      font-family: inherit;
+      transition: border-color 0.15s;
+    }
+
+    input[type="text"]:focus,
+    textarea:focus {
+      outline: none;
+      border-color: #4a7cff;
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 72px;
+    }
+
+    textarea:disabled {
+      background: #f0f0f0;
+      color: #999;
+    }
+
+    .none-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 10px;
+      font-size: 0.875rem;
+      color: #555;
+    }
+
+    .none-row input[type="checkbox"] {
+      width: 16px;
+      height: 16px;
+      cursor: pointer;
+    }
+
+    .list-items {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .list-item {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .list-item input {
+      flex: 1;
+    }
+
+    .btn {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 6px;
+      font-size: 0.875rem;
+      font-family: inherit;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .btn-add {
+      background: #eef2ff;
+      color: #4a7cff;
+      margin-top: 8px;
+    }
+
+    .btn-add:hover { background: #dce4ff; }
+
+    .btn-remove {
+      background: #fee;
+      color: #c44;
+      padding: 8px 12px;
+      flex-shrink: 0;
+    }
+
+    .btn-remove:hover { background: #fdd; }
+
+    .preview-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+
+    .preview-header .card-title { margin-bottom: 0; }
+
+    .btn-copy {
+      background: #4a7cff;
+      color: #fff;
+      font-weight: 500;
+    }
+
+    .btn-copy:hover { background: #3a6ae8; }
+
+    .btn-copy.copied {
+      background: #22a06b;
+    }
+
+    #preview {
+      background: #fafbfc;
+      border: 1px solid #e4e7ec;
+      border-radius: 6px;
+      padding: 16px;
+      font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+      font-size: 0.9rem;
+      white-space: pre-wrap;
+      word-break: break-all;
+      line-height: 1.8;
+      min-height: 200px;
+    }
+
+    .date-hint {
+      font-size: 0.8rem;
+      color: #888;
+      margin-top: 4px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>工作汇报生成器</h1>
+    <p class="subtitle">填写内容后复制，直接发到群里汇报</p>
+
+    <div class="card">
+      <label for="name">姓名</label>
+      <input type="text" id="name" placeholder="例如：肖明辉">
+      <p class="date-hint" id="dateHint"></p>
+    </div>
+
+    <div class="card">
+      <div class="card-title">一、领导安排工作</div>
+      <div class="none-row">
+        <input type="checkbox" id="s1-none" checked>
+        <label for="s1-none" style="margin:0;cursor:pointer">暂无</label>
+      </div>
+      <textarea id="s1" placeholder="填写领导安排的工作内容" disabled></textarea>
+    </div>
+
+    <div class="card">
+      <div class="card-title">二、重点工作事项</div>
+      <div class="list-items" id="s2-list"></div>
+      <button class="btn btn-add" id="s2-add">+ 添加项目</button>
+    </div>
+
+    <div class="card">
+      <div class="card-title">三、需要协助的工作</div>
+      <div class="none-row">
+        <input type="checkbox" id="s3-none" checked>
+        <label for="s3-none" style="margin:0;cursor:pointer">暂无</label>
+      </div>
+      <textarea id="s3" placeholder="填写需要协助的工作" disabled></textarea>
+    </div>
+
+    <div class="card">
+      <div class="card-title">四、日常工作汇报</div>
+      <div class="list-items" id="s4-list"></div>
+      <button class="btn btn-add" id="s4-add">+ 添加条目</button>
+    </div>
+
+    <div class="card">
+      <div class="preview-header">
+        <div class="card-title">预览</div>
+        <button class="btn btn-copy" id="copyBtn">复制到剪贴板</button>
+      </div>
+      <div id="preview"></div>
+    </div>
+  </div>
+
+  <script>
+    const STORAGE_KEY = 'work-report-name';
+
+    function formatDate(d) {
+      return `${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日`;
+    }
+
+    function buildReport() {
+      const name = document.getElementById('name').value.trim();
+      const s1None = document.getElementById('s1-none').checked;
+      const s1 = document.getElementById('s1').value.trim();
+      const s3None = document.getElementById('s3-none').checked;
+      const s3 = document.getElementById('s3').value.trim();
+
+      const s2Items = [...document.querySelectorAll('#s2-list input')]
+        .map(el => el.value.trim())
+        .filter(v => v);
+
+      const s4Items = [...document.querySelectorAll('#s4-list input')]
+        .map(el => el.value.trim())
+        .filter(v => v);
+
+      const lines = [
+        formatDate(new Date()),
+        `${name || '（请填写姓名）'}工作汇报：`,
+        `一、领导安排工作：${s1None || !s1 ? '暂无' : s1}`,
+      ];
+
+      if (s2Items.length === 0) {
+        lines.push('二、重点工作事项：暂无');
+      } else {
+        lines.push('二、重点工作事项：');
+        s2Items.forEach(item => lines.push(`   ${item}`));
+      }
+
+      lines.push(`三、需要协助的工作：${s3None || !s3 ? '暂无' : s3}`);
+
+      if (s4Items.length === 0) {
+        lines.push('四、日常工作汇报: 暂无');
+      } else {
+        lines.push('四、日常工作汇报:');
+        s4Items.forEach((item, i) => lines.push(`   ${i + 1}. ${item}`));
+      }
+
+      return lines.join('\n');
+    }
+
+    function updatePreview() {
+      document.getElementById('preview').textContent = buildReport();
+    }
+
+    function createListItem(listId, placeholder) {
+      const row = document.createElement('div');
+      row.className = 'list-item';
+
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.placeholder = placeholder;
+      input.addEventListener('input', () => {
+        updatePreview();
+        saveName();
+      });
+
+      const removeBtn = document.createElement('button');
+      removeBtn.className = 'btn btn-remove';
+      removeBtn.textContent = '删除';
+      removeBtn.addEventListener('click', () => {
+        row.remove();
+        updatePreview();
+      });
+
+      row.appendChild(input);
+      row.appendChild(removeBtn);
+      document.getElementById(listId).appendChild(row);
+      input.focus();
+      updatePreview();
+    }
+
+    function setupNoneToggle(checkboxId, textareaId) {
+      const checkbox = document.getElementById(checkboxId);
+      const textarea = document.getElementById(textareaId);
+
+      checkbox.addEventListener('change', () => {
+        textarea.disabled = checkbox.checked;
+        if (checkbox.checked) textarea.value = '';
+        updatePreview();
+      });
+    }
+
+    function saveName() {
+      const name = document.getElementById('name').value.trim();
+      if (name) localStorage.setItem(STORAGE_KEY, name);
+    }
+
+    function init() {
+      const savedName = localStorage.getItem(STORAGE_KEY);
+      if (savedName) document.getElementById('name').value = savedName;
+
+      document.getElementById('dateHint').textContent =
+        `今天日期：${formatDate(new Date())}（自动生成）`;
+
+      setupNoneToggle('s1-none', 's1');
+      setupNoneToggle('s3-none', 's3');
+
+      document.getElementById('name').addEventListener('input', () => {
+        updatePreview();
+        saveName();
+      });
+
+      document.getElementById('s1').addEventListener('input', updatePreview);
+      document.getElementById('s3').addEventListener('input', updatePreview);
+
+      document.getElementById('s2-add').addEventListener('click', () => {
+        createListItem('s2-list', '项目名称');
+      });
+
+      document.getElementById('s4-add').addEventListener('click', () => {
+        createListItem('s4-list', '工作内容');
+      });
+
+      document.getElementById('copyBtn').addEventListener('click', async () => {
+        const text = buildReport();
+        const btn = document.getElementById('copyBtn');
+
+        try {
+          await navigator.clipboard.writeText(text);
+          btn.textContent = '已复制';
+          btn.classList.add('copied');
+          setTimeout(() => {
+            btn.textContent = '复制到剪贴板';
+            btn.classList.remove('copied');
+          }, 2000);
+        } catch {
+          const ta = document.createElement('textarea');
+          ta.value = text;
+          ta.style.position = 'fixed';
+          ta.style.left = '-9999px';
+          document.body.appendChild(ta);
+          ta.select();
+          document.execCommand('copy');
+          document.body.removeChild(ta);
+          btn.textContent = '已复制';
+          btn.classList.add('copied');
+          setTimeout(() => {
+            btn.textContent = '复制到剪贴板';
+            btn.classList.remove('copied');
+          }, 2000);
+        }
+      });
+
+      updatePreview();
+    }
+
+    init();
+  </script>
+</body>
+</html>
