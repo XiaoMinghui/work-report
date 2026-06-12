@@ -32,6 +32,8 @@ cd C:\Users\24332\Projects\work-report
 
 推送成功后，代码地址：https://github.com/XiaoMinghui/work-report
 
+> 说明：本机通过 HTTPS 推送（需开启代理 127.0.0.1:7890）。SSH 方式需先在 GitHub 添加公钥。
+
 ---
 
 ## 第三步：在 Cloudflare Pages 部署
