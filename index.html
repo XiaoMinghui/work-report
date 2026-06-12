@@ -989,29 +989,6 @@ function App() {
               <DateInput size="middle" value={reportDate} onChange={(e) => setReportDate(e.target.value)} />
               <Input size="middle" placeholder="请输入姓名" value={name} onChange={(e) => setName(e.target.value)} allowClear />
             </div>
-
-            <div className={`sync-bar${syncPin ? ' sync-bar--active' : ''}`}>
-              <span className="sync-bar-label">云端同步</span>
-              {syncPin ? (
-                <>
-                  <span className={`sync-status ${syncStatusClass}`}>{syncStatusText || '已启用'}</span>
-                  <Button type="default" size="small" onClick={disableSync}>退出同步</Button>
-                </>
-              ) : (
-                <>
-                  <Input
-                    size="middle"
-                    type="password"
-                    placeholder="设置 4-32 位同步码"
-                    value={pinInput}
-                    onChange={(e) => setPinInput(e.target.value)}
-                    onPressEnter={enableSync}
-                  />
-                  <Button type="primary" size="small" onClick={enableSync}>启用同步</Button>
-                </>
-              )}
-            </div>
-
             <div className="section-block">
               <Card pattern="app-green" className="section-card-scroll">
                 <div className="section-label">四、日常工作汇报</div>
@@ -1061,6 +1038,29 @@ function App() {
           </div>
 
           <div className="output-column">
+
+            <div className={`sync-bar${syncPin ? ' sync-bar--active' : ''}`}>
+              <span className="sync-bar-label">云端同步</span>
+              {syncPin ? (
+                <>
+                  <span className={`sync-status ${syncStatusClass}`}>{syncStatusText || '已启用'}</span>
+                  <Button type="default" size="small" onClick={disableSync}>退出同步</Button>
+                </>
+              ) : (
+                <>
+                  <Input
+                    size="middle"
+                    type="password"
+                    placeholder="设置 4-32 位同步码"
+                    value={pinInput}
+                    onChange={(e) => setPinInput(e.target.value)}
+                    onPressEnter={enableSync}
+                  />
+                  <Button type="primary" size="small" onClick={enableSync}>启用同步</Button>
+                </>
+              )}
+            </div>
+
             <div className="preview-box">
               <div className="preview-inner">
                 <div className="preview-time">
