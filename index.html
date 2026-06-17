@@ -779,9 +779,9 @@ async function apiFetchSync(pin, options = {}) {
   return { res, json };
 }
 
-function buildSyncRecord(reportDate, name, s1, s2, s3, s4) {
+function buildSyncRecord(name, s1, s2, s3, s4) {
   return {
-    data: { reportDate, name, s1, s2, s3, s4 },
+    data: { name, s1, s2, s3, s4 },
     updatedAt: new Date().toISOString(),
   };
 }
@@ -848,7 +848,6 @@ function App() {
 
   const applySyncData = useCallback((data) => {
     if (!data) return;
-    if (data.reportDate) setReportDate(data.reportDate);
     if (data.name != null) setName(data.name);
     if (data.s1 != null) setS1(data.s1);
     if (Array.isArray(data.s2)) setS2(data.s2);
@@ -867,7 +866,7 @@ function App() {
   }, [applySyncData]);
 
   const pushToCloud = useCallback(async (pin) => {
-    const record = buildSyncRecord(reportDate, name, s1, s2, s3, s4);
+    const record = buildSyncRecord(name, s1, s2, s3, s4);
     const { res, json } = await apiFetchSync(pin, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
@@ -882,7 +881,7 @@ function App() {
     if (!res.ok) throw new Error(json.error || 'push_failed');
     localStorage.setItem(STORAGE_KEY_UPDATED, record.updatedAt);
     setSyncStatus('saved');
-  }, [reportDate, name, s1, s2, s3, s4, applySyncData]);
+  }, [name, s1, s2, s3, s4, applySyncData]);
 
   useEffect(() => { localStorage.setItem(STORAGE_KEY, name); }, [name]);
   useEffect(() => { localStorage.setItem(STORAGE_KEY_S1, s1); }, [s1]);
@@ -917,7 +916,7 @@ function App() {
       }
     }, 1200);
     return () => clearTimeout(pushTimer.current);
-  }, [syncPin, reportDate, name, s1, s2, s3, s4, pushToCloud]);
+  }, [syncPin, name, s1, s2, s3, s4, pushToCloud]);
 
   const enableSync = () => {
     const pin = pinInput.trim();
