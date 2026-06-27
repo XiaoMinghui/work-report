@@ -63,6 +63,11 @@ html,#root{min-height:100%}
 .list-row{display:flex;gap:8px;align-items:center;margin-bottom:8px}
 .list-row .animal-input-wrap{flex:1;min-width:0}
 .list-row .animal-btn--small{flex-shrink:0;padding:0 4px;min-width:34px}
+.list-row--dragging{opacity:.55}
+.list-row--drag-over{outline:2px dashed #19c8b9;outline-offset:2px;border-radius:12px}
+.list-row-drag{border:none;background:transparent;padding:0 4px;cursor:grab;touch-action:none;flex-shrink:0;display:flex;flex-direction:column;align-items:center;justify-content:center;width:24px;height:34px;border-radius:8px;color:#9f927d;line-height:.55;font-size:14px;user-select:none}
+.list-row-drag:active{cursor:grabbing;color:#794f27}
+.list-row-drag:focus-visible{outline:2px solid var(--focus-yellow);outline-offset:2px}
 .animal-item-icon{display:block;object-fit:contain;flex-shrink:0;image-rendering:auto}
 .list-actions{margin-top:6px}
 .preview-box{display:flex;flex-direction:column;gap:12px;padding:0}
@@ -966,8 +971,18 @@ function App() {
   const addS2 = () => setS2([...s2, '']);
   const updS2 = (i, v) => { const n = [...s2]; n[i] = v; setS2(n); };
 
+  const [s4DragIndex, setS4DragIndex] = useState(null);
+  const [s4DropIndex, setS4DropIndex] = useState(null);
+
   const addS4 = () => setS4([...s4, '']);
   const updS4 = (i, v) => { const n = [...s4]; n[i] = v; setS4(n); };
+  const reorderS4 = (from, to) => {
+    if (from === null || to === null || from === to) return;
+    const next = [...s4];
+    const [item] = next.splice(from, 1);
+    next.splice(to, 0, item);
+    setS4(next);
+  };
 
   const copy = async () => {
     try { await navigator.clipboard.writeText(preview); }
@@ -993,7 +1008,33 @@ function App() {
                 <div className="section-label">四、日常工作汇报</div>
                 <div className={`item-list s4-list${s4.length > 4 ? ' scrollable-list scrollable-list--active' : ''}`}>
                   {s4.map((item, i) => (
-                    <div className="list-row" key={i}>
+                    <div
+                      className={`list-row${s4DragIndex === i ? ' list-row--dragging' : ''}${s4DropIndex === i && s4DragIndex !== i ? ' list-row--drag-over' : ''}`}
+                      key={i}
+                      onDragOver={(e) => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; setS4DropIndex(i); }}
+                      onDragLeave={() => setS4DropIndex((prev) => (prev === i ? null : prev))}
+                      onDrop={(e) => {
+                        e.preventDefault();
+                        const from = Number(e.dataTransfer.getData('text/plain'));
+                        reorderS4(from, i);
+                        setS4DragIndex(null);
+                        setS4DropIndex(null);
+                      }}
+                    >
+                      <button
+                        type="button"
+                        className="list-row-drag"
+                        draggable
+                        aria-label="拖动排序"
+                        onDragStart={(e) => {
+                          e.dataTransfer.setData('text/plain', String(i));
+                          e.dataTransfer.effectAllowed = 'move';
+                          setS4DragIndex(i);
+                        }}
+                        onDragEnd={() => { setS4DragIndex(null); setS4DropIndex(null); }}
+                      >
+                        <span>⋮</span><span>⋮</span>
+                      </button>
                       <Input size="middle" placeholder={`工作内容 ${i + 1}`} value={item} onChange={(e) => updS4(i, e.target.value)} />
                       <Button type="text" size="small" onClick={() => setS4(s4.filter((_, j) => j !== i))} aria-label="删除"><ItemIcon item={490} size={28} /></Button>
                     </div>
