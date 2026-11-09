@@ -170,6 +170,13 @@ html,#root{min-height:100%}
 .animal-input-field::placeholder{color:var(--text-disabled);font-weight:400}
 .animal-input-field:disabled{color:var(--text-disabled)}
 .animal-input-field--textarea{resize:vertical;min-height:52px;line-height:1.5}
+.animal-input-affix--auto-grow{display:grid;align-items:stretch}
+/* Measure wrapped text in the same grid cell, including any trailing blank line. */
+.animal-input-affix--auto-grow::after{content:attr(data-value) '\200b';visibility:hidden}
+.animal-input-affix--auto-grow::after,.animal-input-affix--auto-grow .animal-input-field{
+  grid-area:1/1;min-width:0;padding:9px 0;line-height:24px;white-space:pre-wrap;overflow-wrap:anywhere
+}
+.animal-input-affix--auto-grow .animal-input-field{resize:none;overflow:hidden}
 .animal-input-prefix,.animal-input-suffix{color:#a0936e;font-size:14px}
 .animal-input-clear{width:20px;height:20px;border:none;border-radius:50%;background:transparent;color:var(--text-disabled);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px}
 .animal-input-clear:hover{background:rgba(114,93,66,0.1);color:var(--text-body)}
@@ -468,19 +475,20 @@ function DateInput({ value, onChange, size = 'middle', className = '' }) {
   );
 }
 
-function Input({ size = 'middle', value, defaultValue, onChange, onPressEnter, placeholder, disabled, readOnly, shadow = false, status, prefix, suffix, allowClear, label, rows, type = 'text', className = '' }) {
+function Input({ size = 'middle', value, defaultValue, onChange, onPressEnter, placeholder, disabled, readOnly, shadow = false, status, prefix, suffix, allowClear, label, rows, autoGrow = false, type = 'text', className = '' }) {
   const [inner, setInner] = useState(defaultValue || '');
   const val = value !== undefined ? value : inner;
   const setVal = (v) => { if (value === undefined) setInner(v); onChange && onChange({ target: { value: v } }); };
-  const isTextarea = rows != null;
-  const affixCls = ['animal-input-affix', `animal-input-affix--${size}`, type === 'date' && 'animal-input-affix--date', shadow && 'animal-input-affix--shadow', status === 'error' && 'animal-input-affix--error', status === 'warning' && 'animal-input-affix--warning', disabled && 'animal-input-affix--disabled', isTextarea && 'animal-input-affix--textarea'].filter(Boolean).join(' ');
+  const isTextarea = autoGrow || rows != null;
+  const textareaAffix = autoGrow ? 'animal-input-affix--auto-grow' : 'animal-input-affix--textarea';
+  const affixCls = ['animal-input-affix', `animal-input-affix--${size}`, type === 'date' && 'animal-input-affix--date', shadow && 'animal-input-affix--shadow', status === 'error' && 'animal-input-affix--error', status === 'warning' && 'animal-input-affix--warning', disabled && 'animal-input-affix--disabled', isTextarea && textareaAffix].filter(Boolean).join(' ');
   const field = isTextarea
-    ? <textarea className="animal-input-field animal-input-field--textarea" rows={rows} value={val} placeholder={placeholder} disabled={disabled} readOnly={readOnly} onChange={(e) => setVal(e.target.value)} />
+    ? <textarea className={autoGrow ? 'animal-input-field' : 'animal-input-field animal-input-field--textarea'} rows={autoGrow ? 1 : rows} value={val} placeholder={placeholder} disabled={disabled} readOnly={readOnly} onChange={(e) => setVal(e.target.value)} />
     : <input className="animal-input-field" type={type} value={val} placeholder={placeholder} disabled={disabled} readOnly={readOnly} onChange={(e) => setVal(e.target.value)} onKeyDown={(e) => onPressEnter && e.key === 'Enter' && onPressEnter(e)} />;
   return (
     <div className={`animal-input-wrap ${className}`}>
       {label && <span className="animal-input-label">{label}</span>}
-      <div className={affixCls}>{prefix && <span className="animal-input-prefix">{prefix}</span>}{field}{allowClear && val && !disabled && <button type="button" className="animal-input-clear" onClick={() => setVal('')} aria-label="clear">×</button>}{suffix && <span className="animal-input-suffix">{suffix}</span>}</div>
+      <div className={affixCls} data-value={autoGrow ? val : undefined}>{prefix && <span className="animal-input-prefix">{prefix}</span>}{field}{allowClear && val && !disabled && <button type="button" className="animal-input-clear" onClick={() => setVal('')} aria-label="clear">×</button>}{suffix && <span className="animal-input-suffix">{suffix}</span>}</div>
     </div>
   );
 }
@@ -1035,7 +1043,7 @@ function App() {
                       >
                         <span>⋮</span><span>⋮</span>
                       </button>
-                      <Input size="middle" placeholder={`工作内容 ${i + 1}`} value={item} onChange={(e) => updS4(i, e.target.value)} />
+                      <Input size="middle" autoGrow placeholder={`工作内容 ${i + 1}`} value={item} onChange={(e) => updS4(i, e.target.value)} />
                       <Button type="text" size="small" onClick={() => setS4(s4.filter((_, j) => j !== i))} aria-label="删除"><ItemIcon item={490} size={28} /></Button>
                     </div>
                   ))}
